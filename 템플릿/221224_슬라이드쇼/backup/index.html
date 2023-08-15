@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+    <style>
+
+        * {
+            outline: none !important;
+        }
+
+        body {
+            background-color: #111;
+            font-family: 'Spoqa Han Sans Neo';
+        }
+
+        body:before {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            content: attr(data-text);
+            font-size: 1.5rem;
+            color: #666;
+        }
+
+        body[data-autoplay="true"] #pager {
+            display: none;
+        }
+
+        #container {
+            position: fixed;
+        }
+
+        #container, #container:before, #container > div, body:before {
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+
+            width: 100%;
+            height: 100%;
+        }
+
+        #container > div {
+            position: absolute;
+            visibility: hidden;
+        }
+
+        #container > div.on {
+            visibility: visible;
+        }
+
+        #container > div {
+            animation-timing-function: ease;
+            animation-duration: .5s;
+            animation-fill-mode: both;
+        }
+
+        #container[data-slide="right"] > div.slide.on {
+            animation-name: slide-right;
+        }
+
+        #container[data-slide="left"] > div.slide.on {
+            animation-name: slide-left;
+        }
+
+        #container > div > img, #container > div > video, #container > div > iframe {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border: 0;
+            outline: 0;
+        }
+
+        #container > div[data-text]:after {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 3%;
+
+            content: attr(data-text);
+            color: white;
+            font-size: 4.5rem;
+            font-weight: bolder;
+            text-shadow: 1px 1px 5px black, 1px 1px 5px black, 1px 1px 5px black, 1px 1px 10px black;
+
+            animation-duration: .4s;
+            animation-name: text;
+            animation-timing-function: ease;
+            animation-direction: alternate;
+            animation-iteration-count: infinite;
+        }
+
+
+        #pager {
+            position: absolute;
+            right: 1rem;
+            bottom: 1rem;
+
+            font-size: 1.35rem;
+            font-weight: bolder;
+            color: white;
+            text-shadow: 1px 1px 5px black, 1px 1px 5px black, 1px 1px 5px black, 1px 1px 10px black;
+            opacity: .65;
+        }
+
+        @keyframes text {
+            from {
+                transform: translateY(5px);
+            }
+            to {
+                transform: translateY(0px);
+            }
+        }
+
+        @keyframes slide-left {
+            from {
+                transform: translateX(-100px);
+            }
+            to {
+                transform: translateX(0px);
+            }
+        }
+
+        @keyframes slide-right {
+            from {
+                transform: translateX(100px);
+            }
+            to {
+                transform: translateX(0px);
+            }
+        }
+
+    </style>
+</head>
+<body data-template="body" tabindex="-1" data-text="Loading...">
+
+<div id="container"></div>
+
+<div id="pager"></div>
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+
+<script>
+
+    const
+
+        {root, path, name} = APP.paths,
+        $container = document.getElementById('container'),
+
+        div = (ele, text) => {
+            const div = document.createElement('div');
+            div.appendChild(ele);
+            text && div.setAttribute('data-text', text);
+            return div;
+        },
+
+        Body = new class Body extends JS.Template {
+
+            autoplay = true
+            index = -1
+
+            $pager
+
+            constructor() {
+                super();
+                document.addEventListener('keyup', (e) => {
+                    switch (e.key) {
+                        case 'ArrowUp' :
+                            if (this.autoplay) this.view(this.index);
+                            else this.loop(this.index);
+                            return;
+                        case 'ArrowRight':
+                            return this.hasNext() && this.view(this.index + 1);
+                        case 'ArrowLeft' :
+                            return this.hasPrev() && this.view(this.index - 1);
+                    }
+                });
+                this.$pager = document.getElementById('pager')
+            }
+
+            init() {
+                forEach.call(this.data, (media) => {
+                    $container.appendChild(media.element);
+                    media.init();
+                });
+                return this;
+            }
+
+            close(index) {
+                const media = this.data[index];
+                if (media) {
+                    this.index !== index && media.element.classList.remove('on');
+                    media.close();
+                }
+                return this;
+            }
+
+            append(media, isRight) {
+                if (media.element.classList.contains('on')) return media;
+                $container.setAttribute('data-slide', isRight ? 'right' : 'left');
+                media.element.classList.add('on');
+                this.$pager.textContent = (media.index + 1) + ' / ' + this.data.length;
+                return media;
+            }
+
+            // 선택 재생
+            view(idx) {
+                const
+                    {index} = this,
+                    media = this.data[idx];
+                this.element.setAttribute('data-autoplay', this.autoplay = false);
+                media.play()
+                    .then(() => this.close(index).append(media, idx > index));
+                this.index = idx;
+                return this;
+            }
+
+            // 자동 재생
+            loop(idx = this.next()) {
+                const
+                    {index} = this,
+                    media = this.data[idx];
+                this.element.setAttribute('data-autoplay', this.autoplay = true);
+                media.play()
+                    .then(() => this.close(index).append(media, true))
+                    .then(() => media.wait())
+                    .then(() => this.autoplay && this.loop());
+                this.index = idx;
+            }
+
+            next() {
+                return this.hasNext() ? this.index + 1 : 0;
+            }
+
+            hasNext() {
+                return this.data.length - 1 > this.index;
+            }
+
+            hasPrev() {
+                return this.index > 0;
+            }
+
+        },
+
+        // 각 미디어들이 상속받는 Abstract 클래스
+        Type = class Type {
+
+            index
+            data
+            media
+            element
+            provider = Promise.resolve();
+
+            constructor(data) {
+                this.element = document.createElement('div');
+                if (data.text) this.element.setAttribute('data-text', data.text);
+                this.data = data;
+            }
+
+            init() {
+
+            }
+
+            setIndex(index) {
+                this.index = index;
+                return this;
+            }
+
+            append(media) {
+                this.media = media;
+                this.element.appendChild(media);
+                return this;
+            }
+
+            play() {
+            }
+
+            // 타이머 가동
+            wait() {
+            }
+
+            close() {
+
+            }
+
+        },
+
+        Types = {
+
+            // 이미지
+            image: class extends Type {
+
+                timeIdx
+
+                constructor(data) {
+                    super(data);
+                    const image = new Image();
+                    this.provider = new Promise((resolve => image.onload = resolve));
+                    image.src = APP.src(data.filename);
+                    this.append(image);
+                    this.element.classList.add('slide')
+                }
+
+                play() {
+                    return this.provider;
+                }
+
+                wait() {
+                    return new Promise(x => this.timeIdx = setTimeout(x, this.data.time * 1000))
+                }
+
+                close() {
+                    clearTimeout(this.timeIdx);
+                }
+
+            },
+
+            video: class extends Type {
+                constructor(data) {
+                    super(data);
+                    const video = document.createElement('video'),
+                        source = document.createElement('source');
+
+                    this.provider = new Promise((resolve => video.onloadstart = resolve));
+
+                    video.muted = true;
+                    source.src = APP.src(data.filename);
+                    source.type = 'video/mp4';
+                    video.appendChild(source);
+
+                    this.append(video);
+                }
+
+                play() {
+                    return this.provider.then(() => {
+                        this.media.onended = null;
+                        this.media.currentTime = 0;
+                        this.media.loop = true;
+                        this.media.play();
+                    })
+                }
+
+                wait() {
+                    return new Promise(resolve => {
+                        this.media.onended = () => {
+                            this.media.pause();
+                            resolve();
+                        };
+                        this.media.loop = false;
+                    })
+                }
+
+                close() {
+                    this.media.pause();
+                }
+            },
+
+            text: class HTML extends Type {
+                constructor(data) {
+                    super(data);
+                    const iframe = document.createElement('iframe');
+                    this.provider = new Promise((resolve => iframe.onload = resolve));
+                    iframe.src = APP.src(data.filename);
+                    this.append(iframe);
+                }
+
+                init() {
+                    this.media.contentWindow.postMessage({index: this.index, active: false});
+                }
+
+                // ※<iframe>의 경우 document에 append 되지 않으면 contentWindow가 null이다.
+                play() {
+                    return this.provider.then(() => {
+                        this.media.contentWindow.postMessage({index: this.index, active: true});
+                    });
+                }
+
+                close() {
+                    this.media.contentWindow.postMessage({index: this.index, active: false});
+                }
+
+                wait() {
+                    return this.provider.then(x => new Promise(resolve => window.onmessage = resolve));
+                }
+            },
+        },
+
+
+        init = ({autoplay, values}) => {
+            let $values = [], count = 0;
+
+            if(!values.length) {
+                document.body.setAttribute('data-text', '재생할 슬라이드가 존재하지 않습니다.');
+                return;
+            }
+
+            values.filter(val => !val.ignore).forEach(value => {
+                const cons = Types[value.mediaType.split('/')[0]];
+                if (cons) $values.push(new cons(value).setIndex(count++));
+            });
+            const body = Body.setData($values).init();
+            autoplay ? body.loop() : body.view(0);
+        };
+
+    APP.getJSON().then(values => init(values));
+
+
+    // 비디오 볼륨
+    $container.addEventListener('click', () => {
+        forEach.call(container.getElementsByTagName('video'), (e) => {
+            if (e.muted) {
+                e.muted = false;
+                e.volume = 1;
+            } else e.muted = true;
+        });
+    });
+
+    document.body.addEventListener('mouseenter', () => {
+        document.body.focus()
+    })
+    document.body.focus();
+
+
+</script>
+</body>
+</html>

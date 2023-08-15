@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="kr">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="/dist/fonts/SpoqaHanSansNeo.css" rel="stylesheet" type="text/css">
+    <link href="/dist/lib/css/reboot.css" rel="stylesheet" type="text/css">
+
+    <style>
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            background-color: #222;
+        }
+
+
+        #header {
+            padding: 2rem 2rem 1rem;
+            margin-bottom: 2rem;
+            color: white;
+            background-color: #060606;
+            border-bottom: 1px solid #5e5e5e;
+        }
+
+        .current {
+            display: flex;
+            justify-content: space-between;
+
+            color: #fff;
+            font-size: 3rem;
+            text-align: center;
+            font-weight: bolder;
+        }
+
+        .current > strong {
+            color: #fff;
+        }
+
+        .current small {
+            color: #ccc;
+        }
+
+        .modified {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding-bottom: 1rem;
+
+            font-size: 2rem;
+            text-align: center;
+        }
+
+        #now {
+            padding: 0.2rem 0.5rem;
+            margin-left: 0.75rem;
+            background-color: red;
+            font-size: 2rem;
+            border-radius: 0.3rem;
+            color: white;
+            font-weight: bolder;
+            letter-spacing: -.05em;
+        }
+
+        #now:empty {
+            display: none;
+        }
+
+        #container {
+            display: flex;
+        }
+
+        .column {
+            flex: 1 1 auto;
+            padding: .5rem 2rem;
+            width: 50%;
+            color: #ddd;
+            font-size: 2.8rem;
+            font-weight: bolder;
+        }
+
+        .line {
+            display: flex;
+            text-overflow: ellipsis;
+            word-break: break-all;
+            line-height: 1.1;
+        }
+
+        .line[data-number]:before {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            width: 3rem;
+            height: 3rem;
+            flex: 0 0 auto;
+            content: attr(data-number);
+            background-color: white;
+            color: black;
+            font-size: 2.5rem;
+            font-weight: bolder;
+            border-radius: 10%;
+        }
+
+        .line.title {
+            padding: .75rem 0 .5rem;
+            margin-bottom: 1.5rem;
+            background-color: #ffbc11;
+            color: black;
+            text-align: center;
+            justify-content: center;
+            font-weight: 800;
+            border-radius: 2.5rem;
+        }
+
+        .line + .line {
+            margin-top: 2rem;
+        }
+
+
+
+        @media (orientation: portrait) {
+
+            #header {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            #container {
+                display: block;
+            }
+
+            .column {
+                padding: 1rem 4rem;
+                width: 100%;
+            }
+
+            .column + .column {
+                margin-top: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="header">
+    <div class="modified">
+        <strong>입력시간 : </strong>
+        <span id="modified"></span>
+        <span id="now"></span>
+    </div>
+    <div class="current">
+        <strong>WorkList</strong>
+        <div id="current"></div>
+    </div>
+</div>
+
+<div id="container">
+    <div class="column"></div>
+    <div class="column"></div>
+</div>
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+<script>
+
+    let columns = document.getElementsByClassName('column'),
+        modified = document.getElementById('modified'),
+        current = document.getElementById('current'),
+
+        modifiedTime = 0,
+        now = document.getElementById('now'),
+
+
+        __time = () => {
+            const time = new Date().getTime();
+            current.innerHTML = JS.datetime(time, '<small>{yyyy}-{MM}-{dd}({E}) {ap}</small> <strong>{h}:{mm}</strong>:{ss}');
+            if (modifiedTime > 0 && ((time - modifiedTime) < 60 * 60 * 1000)) {
+                now.textContent = 'new';
+            } else now.textContent = '';
+            setTimeout(__time, 1000);
+        },
+        reload = () => {
+            APP.getJSON().then(values => {
+                if (values) {
+                    modifiedTime = values[2].date;
+                    modified.textContent = JS.datetime(values[2].date, 'yyyy-MM-dd(E) HH:mm');
+                    values.slice(0, 2).forEach((lines, i) => {
+                        let num = 1;
+                        columns[i].innerHTML = lines.split(/\n/).map((line, i) => {
+                            line = line.trim();
+                            if (!line) return '<div class="line">　</div>';
+                            if (/^\*\*/.test(line)) {
+                                num = 1;
+                                return '<div class="line title">' + line + '</div>';
+                            }
+                            return '<div data-number="' + num++ + '" class="line">' + line + '</div>';
+                        }).join('');
+                    })
+                }
+            })
+        };
+
+    __time();
+    reload();
+
+    window.addEventListener('message', reload);
+
+
+</script>
+
+</body>
+</html>

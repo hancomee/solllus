@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+    <link href="/dist/app-admin.css" rel='stylesheet' type='text/css'>
+
+
+    <style>
+
+        input, textarea {
+            padding: 1rem;
+            width: 100%;
+            border: 0 !important;
+            outline: 0 !important;
+
+            font-family: 'Spoqa Han Sans Neo';
+            background-color: whitesmoke;
+
+            border-radius: .5rem;
+        }
+
+        input {
+            margin-bottom: 1rem;
+            flex: 0 0 auto;
+            font-size: 1rem;
+        }
+
+        textarea {
+            flex: 1 1 auto;
+            font-size: 1.5rem;
+        }
+
+        #container {
+            padding: 1.5rem;
+        }
+
+        .media > .media-box {
+            overflow: hidden;
+            display: flex;
+            margin-top: 1.5rem;
+            width: 100%;
+            height: 6rem;
+            font-size: .85rem;
+        }
+
+        .media[data-ignore="true"] {
+            opacity: .5;
+        }
+
+        .media + .media {
+            margin-top: 1.75rem;
+        }
+
+        .media > .media-box:first-child {
+            margin-top: 0;
+        }
+
+        .thumb {
+            position: relative;
+            flex: 0 0 auto;
+            justify-content: center;
+            width: 50%;
+            background-color: #626262;
+        }
+
+        .content {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .thumb .delete {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 0;
+            padding: 0.3rem 0.6rem;
+            background-color: #d72b2b;
+            color: white;
+            font-size: .65rem;
+        }
+
+        .content > img, .content > video {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+        }
+
+
+        .time {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            background-color: white;
+        }
+
+        .time-value {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1 1 auto;
+            font-weight: bolder;
+            font-size: 1.5rem;
+        }
+
+        .time-value:after {
+            margin-top: 0.5rem;
+            content: '초';
+            font-size: .85rem;
+            font-weight: normal;
+        }
+
+        .time-check {
+            display: flex;
+            height: 40%;
+            color: #343434;
+        }
+
+        .time-check > span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50%;
+            font-size: .65rem;
+            background-color: #cfcfcf;
+        }
+
+        .time-check > span:active {
+            background-color: #666;
+            transition: .5s ease background-color;
+        }
+
+        .time-check > span:first-child {
+            border-right: 1px solid #adadad;
+        }
+
+
+        .sort {
+            display: flex;
+            flex-direction: column;
+            width: 15%;
+        }
+
+        .up {
+            border-bottom: 1px solid #333333;
+        }
+
+        .up, .down {
+            display: flex;
+            flex: 1 1 auto;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            background-color: #486864;
+        }
+
+        .up > svg, .down > svg {
+            width: 35%;
+            height: 35%;
+            color: white;
+        }
+
+        .time > div {
+            display: none;
+        }
+
+        .text, .option {
+            padding: 1rem;
+            background-color: #626262;
+            border-top: 1px solid #333333;
+        }
+
+        .text input {
+            margin: 0;
+            font-size: 1rem;
+            padding: 0.5rem;
+            border-radius: 0;
+        }
+
+        .option {
+            display: flex;
+            justify-content: right;
+        }
+
+        .option > span {
+            cursor: pointer;
+        }
+
+        [data-media-type^="image"] .time > div {
+            display: flex;
+            -webkit-user-drag: none;
+        }
+
+        [data-media-type^="image"] .time-check {
+            pointer-events: initial;
+        }
+
+        [data-media-type] .delete {
+            display: block !important;
+        }
+
+        @media (min-width: 1000px) {
+            #container {
+                margin: 0 auto;
+                width: 500px;
+            }
+        }
+
+    </style>
+</head>
+<body data-template="body">
+
+
+<nav>
+    <a href="/admin" target="_parent" class="brand">
+        <i>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-fill" viewBox="0 0 16 16">
+                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3Zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+            </svg>
+        </i>
+        <span id="brand"></span>
+    </a>
+    <span class="nav-btn" data-event="save">저장하기</span>
+</nav>
+
+<div id="container">
+    <div class="media" data-media data-template="?media" data-time="1" data-filename data-set-attrs="ignore:data.ignore">
+        <div class="media-box">
+            <div class="thumb">
+                <div class="content" data-event="upload" data-content data-element="$content"></div>
+                <div class="delete" data-event="delete" data-element="$delete">삭제</div>
+            </div>
+            <div class="time">
+                <div class="time-value" data-time-value data-element="$time"></div>
+                <div class="time-check" data-event="time">
+                    <span data-value="-1">down</span>
+                    <span data-value="1">up</span>
+                </div>
+            </div>
+            <div class="sort" data-event="sort">
+            <span class="up" data-value="1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                                 class="bi bi-arrow-up-square-fill"
+                                                 viewBox="0 0 16 16">
+  <path d="M2 16a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2zm6.5-4.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 1 0z"/>
+</svg></span>
+                <span class="down" data-value="-1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                                        class="bi bi-arrow-down-square-fill"
+                                                        viewBox="0 0 16 16">
+  <path d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm6.5 4.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5a.5.5 0 0 1 1 0z"/>
+</svg></span>
+            </div>
+        </div>
+
+        <div class="text"><input spellcheck="false" autocomplete="off" data-element="input" data-text></div>
+        <div class="option">
+            <span data-event="ignore">무시</span>
+        </div>
+    </div>
+</div>
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+
+<script>
+
+    let uuid = 0;
+
+    const
+        {target, root, path, name} = APP.paths,
+        prefix = target + '__',
+        $filename = ({name}) => {
+            let type = name.slice(name.lastIndexOf('.')),
+                filename = prefix + new Date().getTime() + uuid++  + type;
+            return filename;
+        },
+
+        [$container, $brand] = JS.selector('container brand'),
+
+        Media = class extends JS.Template {
+
+            file
+
+            $content
+            $time
+            $src
+
+            constructor() {
+                super();
+                JS.elementsMap('data-element', this.element, this);
+            }
+
+            setData(data) {
+                super.setData(data);
+                return this.render();
+            }
+
+
+            ready() {
+                return !!(this.data && this.data.mediaType);
+            }
+
+            reset() {
+                this.element.removeAttribute('data-media-type');
+                this.$content.textContent = '';
+                this.data = this.file = this.$src = null;
+                this.$time.textContent = 1;
+                return this;
+            }
+
+            setTime(n) {
+                if (this.data) {
+                    let {time} = this.data,
+                        t = time + n;
+                    if (t < 1) t = 1;
+                    this.$time.textContent = this.data.time = t;
+                }
+                return this;
+            }
+
+            text(target) {
+                if(target == null) return this.input.value;
+                if(this.data) target.value = this.data.text || '';
+            }
+
+            render() {
+                if (this.data) {
+                    const {data: {mediaType, filename, time}, $content, $time} = this,
+                        src = this.$src || APP.src(filename);
+
+                    this.element.setAttribute('data-media-type', mediaType)
+
+                    // 이미지
+                    if (/image/i.test(mediaType)) {
+                        const img = new Image();
+                        img.src = src;
+                        $content.textContent = '';
+                        $time.textContent = time;
+                        $content.appendChild(img);
+                    }
+                    // 비디오
+                    else if (/mp4$/i.test(mediaType)) {
+                        const video = document.createElement('video'),
+                            source = document.createElement('source');
+                        source.type = 'video/mp4';
+                        video.preload = 'metadata';
+                        video.appendChild(source);
+                        source.src = src;
+                        $content.textContent = '';
+                        $content.appendChild(video);
+                    } else if (/html$/i.test(mediaType)) {
+                        $content.textContent = 'HTML'
+                    }
+                } else
+                    this.reset();
+
+                return this;
+            }
+
+            values() {
+                this.data.text = this.text();
+                return this.data;
+            }
+
+
+            // 파일 업로드시
+            setFile(file) {
+                const {type} = file;
+                // 이미지
+                if (/image/i.test(type)) {
+                    const fileReader = new FileReader();
+                    fileReader.onload = () => {
+                        this.$src = fileReader.result;
+                        this.file = file;
+                        this.setData({filename: $filename(file), mediaType: type, time: 1});
+                    };
+                    fileReader.readAsDataURL(file);
+                }
+                // 비디오
+                else if (/mp4$/i.test(type)) {
+                    const fileReader = new FileReader();
+                    fileReader.onload = () => {
+                        this.$src = fileReader.result;
+                        this.file = file;
+                        this.setData({filename: $filename(file), mediaType: type, time: 1});
+                    };
+                    fileReader.readAsDataURL(file);
+                } else if (/html$/i.test(type)) {
+                    this.file = file;
+                    this.setData({filename: $filename(file), mediaType: type, time: 1});
+                }
+                return this;
+            }
+        },
+
+        Body = new class Body extends JS.Template {
+
+
+            upload({media}) {
+                JS.input(([file]) => media.setFile(file))
+            }
+
+            ignore({media}) {
+                if(!media.ready()) return;
+
+                const {data} = media,
+                    value = !data.ignore;
+                data.ignore = value
+                media.element.setAttribute('data-ignore', value);
+                return this;
+            }
+
+            time({media, value}) {
+                media.setTime(value);
+            }
+
+            sort({media, value}) {
+                const {element, parentElement} = media;
+                // down
+                if (value === -1 && element.nextElementSibling)
+                    parentElement.insertBefore(element.nextElementSibling, element);
+                if (value === 1 && element.previousElementSibling)
+                    parentElement.insertBefore(element, element.previousElementSibling);
+            }
+
+            delete({media}) {
+                media.reset();
+            }
+
+            save() {
+                //document.body.classList.add('saving');
+                const array = map.call($container.getElementsByClassName('media'), (e) => JS.Template.$get(e))
+                    .filter(media => !!media.data),
+                    files = array.filter(media => !!media.file).map(media => {
+                        return {
+                            file: media.file,
+                            filename: media.data.filename,
+                        }
+                    });
+
+                (files.length ? APP.uploadFiles(files) : Promise.resolve()).then(() => {
+                    const jsonData = array.map(media => media.values());
+                    APP.setJSON(jsonData).then(APP.reloadByContent);
+                })
+            }
+
+        },
+
+        fileUpload = () => {
+            const files = [];
+            forEach.call($container.getElementsByClassName('media'), (e, i) => {
+                const {$file: file} = e;
+                if (file) {
+                    const {name} = file,
+                        type = name.slice(name.lastIndexOf('.')),
+                        filename = prefix + new Date().getTime() + i + type;
+                    e.setAttribute('data-filename', filename);
+                    files.push({file: file, filename: filename});
+                }
+            });
+            return files.length ? APP.uploadFiles(files) : Promise.resolve();
+        },
+
+        contentList = () => {
+            const map = [];
+            forEach.call($container.getElementsByClassName('media'), (e) => {
+                const mediaType = e.getAttribute('data-media-type');
+                if (/^image|^video/i.test(mediaType)) {
+                    map.push({
+                        mediaType: e.getAttribute('data-media-type'),
+                        filename: e.getAttribute('data-filename'),
+                        time: parseInt(e.getAttribute('data-time'))
+                    })
+                }
+            });
+            return map;
+        };
+
+
+    JS.getId().then(([id]) => $brand.textContent = id);
+    JS.addEvent(Body);
+
+    /* ***********************  init  ************************** */
+
+    APP.getJSON().then(data => {
+        data = data || [];
+        for (let i = 0; i < 5; i++) {
+            new Media().setData(data[i]).apply().appendTo()
+        }
+    });
+</script>
+
+</body>
+</html>

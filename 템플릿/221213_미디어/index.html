@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+
+    <style>
+        html, body, #container {
+            overflow: hidden;
+            height: 100%;
+        }
+
+        body {
+            background-color: black;
+        }
+
+        #container {
+            display: flex;
+        }
+
+        .img, video, iframe {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1041;
+
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+
+            border: 0 !important;
+            outline: 0 !important;
+        }
+
+        .img {
+            background-position: center;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+    </style>
+</head>
+<body>
+<div id="container"></div>
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+<script>
+
+
+    const $container = document.getElementById('container');
+
+    APP.getJSON().then((data) => {
+        if (data) {
+            const
+                {filename, mediaType} = data,
+                uri = APP.src(filename);
+            if (/image/i.test(mediaType)) {
+                $container.innerHTML = '<iframe scrolling="no" src="/dist/viewer/img.html?src=' + uri + '"></iframe>'
+            } else {
+                $container.innerHTML = '<iframe scrolling="no" src="/dist/viewer/video.html?src=' + uri + '"></iframe>';
+            }
+        }
+    })
+
+</script>
+
+</body>
+</html>

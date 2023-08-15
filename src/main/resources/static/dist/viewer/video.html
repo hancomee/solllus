@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+
+    <style>
+
+        html, body {
+            height: 100%;
+            cursor: none;
+        }
+
+        body {
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        body > video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        #muted, #log {
+            position: fixed;
+            z-index: 9999;
+        }
+
+        #muted {
+            display: none;
+            top: .5rem;
+            right: .5rem;
+            width: .5rem;
+            height: .5rem;
+            background-color: #bdff36;
+            border-radius: 50%;
+        }
+
+        body[data-muted="0"] #muted {
+            display: block;
+        }
+
+        #log {
+            right: 0;
+            bottom: 0;
+            font-size: .8rem;
+            color: white;
+            opacity: .5;
+        }
+    </style>
+
+</head>
+
+<body tabindex="-1">
+
+
+<div id="log"></div>
+<div id="muted"></div>
+<script>
+
+    (function (search) {
+        const map = {};
+        search.split(/\&/).forEach(v => {
+            const [key, value] = v.split(/=/);
+            map[key] = value;
+        });
+        const {body} = document,
+            log = document.getElementById('log'),
+            video = document.createElement('video'),
+            source = document.createElement('source'),
+            src = map.src,
+
+            playHandler = () => {
+                video.style.visibility = 'visible';
+                video.removeEventListener('play', playHandler);
+                body.focus();
+            },
+            audioHandler = () => {
+                if (video.muted) {
+                    video.muted = false;
+                    video.volume = 1;
+                    body.dataset.muted = '0';
+                } else {
+                    video.muted = true;
+                    body.dataset.muted = '1';
+                }
+            },
+            logData = {
+                responseStatus: '',
+                eventCount: 0,
+                type: null,
+            };
+
+        //document.addEventListener('keyup', (e) => e.key === 'Enter' && audioHandler());
+        document.addEventListener('click', audioHandler);
+        document.addEventListener('touchstart', audioHandler);
+
+        video.addEventListener('play', playHandler);
+        video.addEventListener('canplaythrough', () => {
+            if (video.currentTime === 0)
+                video.play();
+        });
+        //video.addEventListener('canplaythrough', () => video.play());
+        video.addEventListener('ended', () => {
+            /*fetch(src).then(res => logData.responseStatus = res.status);*/
+        });
+
+        video.muted = true;
+        video.loop = true;
+        video.autoplay = true;
+        video.style.visibility = 'hidden';
+        //video.preload = 'auto'
+        source.type = 'video/mp4';
+
+        video.appendChild(source);
+        body.appendChild(video);
+
+        source.src = src;
+
+        let f = ({type}) => {
+                if (logData.type === type) logData.count++;
+                else {
+                    logData.type = type;
+                    logData.count = 1;
+                }
+                log.textContent = '[' + logData.responseStatus + '] ' + logData.type + ' (' + logData.count + ') time : ' + video.currentTime + ', screen : ' +
+                    video.offsetWidth + ':' + video.offsetHeight + ', video : ' + video.videoWidth + ':' + video.videoHeight;
+            };
+        ('playing waiting seeking seeked ended loadedmetadata loadeddata canplay canplaythrough ' +
+            'durationchange play pause ratechange volumechange suspend emptied stalled').split(' ').forEach(type => {
+            video.addEventListener(type, f)
+        });
+
+
+
+        document.body.focus();
+
+    })(location.search.slice(1));
+
+</script>
+</body>
+</html>

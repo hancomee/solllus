@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+    <link href='/dist/lib/css/reboot.css' rel='stylesheet' type='text/css'>
+    <style>
+
+        html, body, #container, .view {
+            width: 100%;
+            height: 100%;
+        }
+
+        body:after, #container, .view, .view iframe {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+
+        body:after {
+            content: '';
+            z-index: 1041;
+        }
+
+        #container, .view {
+            background-color: #111;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            user-select: none;
+        }
+
+        .view {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+
+        .view iframe {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        .view .text {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 80%;
+            height: 65%;
+            color: white;
+            text-shadow: 0 0 0.1em black, 0 0 0.1em black, 0 0 0.2em black;
+        }
+
+        .view .text pre {
+            margin: 0;
+            padding: 0;
+            white-space: pre;
+            text-align: center;
+            font-weight: bolder;
+        }
+
+        .view[data-active="true"] {
+            animation-name: slide;
+            animation-timing-function: ease;
+            animation-duration: .2s;
+            animation-fill-mode: both;
+
+            z-index: 1041;
+        }
+
+        .view[data-active="true"] ~ .view {
+            visibility: hidden;
+        }
+
+        .view[data-key="ArrowUp"] {
+            top: -100%;
+        }
+
+        .view[data-key="ArrowDown"] {
+            top: 100%;
+        }
+
+        .view[data-key="ArrowLeft"] {
+            left: -100%;
+        }
+
+        .view[data-key="ArrowRight"] {
+            left: 100%;
+        }
+
+        @keyframes slide {
+            to {
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+            }
+        }
+
+    </style>
+    <style id="style"></style>
+</head>
+<body tabindex="-1">
+
+<div data-title="Notice" id="container" data-template="container">
+    <div data-template="?view" class="view"></div>
+    <div class="view"><small style="font-size: 1.25rem; color: #666;">방향키를 누르면 설정한 텍스트가 나타납니다</small></div>
+</div>
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+<script>
+
+    let
+        View = class extends JS.Template {
+
+
+            constructor() {
+                super();
+            }
+
+            setData(data) {
+                const {element} = this,
+                    {text: $text} = this.data || {},
+                    {media, mediaType, text} = data;
+
+                element.style.backgroundImage = element.textContent = '';
+
+                if (text && $text !== text) {
+                    this.textRender(text);
+                }
+
+                if (media) {
+                    const src = APP.src(media);
+                    if (/image/.test(mediaType)) {
+                        element.style.backgroundImage = 'url("' + src + '")';
+                    }
+                    if (/html/.test(mediaType)) {
+                        const iframe = document.createElement('iframe');
+                        iframe.src = src;
+                        element.appendChild(iframe);
+                    }
+                }
+
+                this.data = data;
+                return this;
+            }
+
+            textRender(value) {
+
+                // <div class="text"><pre></pre></div>
+                const
+                    {element} = this,
+                    $text = document.createElement('div'),
+                    $pre = document.createElement('pre');
+
+                let em = 8, limit = 100;
+
+                $text.className = 'text';
+                $text.style.fontSize = em + 'em';
+                $pre.textContent = value;
+
+                $text.appendChild($pre);
+                element.appendChild($text);
+
+                let w = $text.offsetWidth, h = $text.offsetHeight,
+                    W = $container.offsetWidth, H = $container.offsetHeight;
+
+                while ((w > W || h > H) && limit-- > 0) {
+                    em = (em - .1).toFixed(1);
+                    $text.style.fontSize = em + 'em';
+                    w = $text.offsetWidth;
+                    h = $text.offsetHeight;
+                }
+                return this;
+            }
+
+            setKey(key) {
+                this.element.dataset.key = key;
+                return this;
+            }
+
+            on() {
+            }
+
+            off() {
+
+            }
+
+            before() {
+                const {parentElement, parentElement: {firstChild}} = this;
+                parentElement.insertBefore(this.element, firstChild);
+                return this;
+            }
+        },
+
+        $container = new class Container extends JS.Template {
+
+            data
+
+            setData(data) {
+                this.data = data;
+                const values = data ? data.values || {} : {},
+                    keys = Object.keys(values),
+                    map = JS.elementsMap(this.element, 'data-key');
+
+                keys.forEach(key => {
+                    const element = map[key];
+                    if (element) JS.Template.$get(element).setData(values[key]).setKey(key).apply();
+                    else new View().before().setData(values[key]).setKey(key).apply();
+                });
+
+                // 없어진건 지운다.
+                for (let p in map) {
+                    if (keys.indexOf(p) === -1)
+                        this.element.removeChild(map[p]);
+                }
+
+                return this;
+            }
+
+            render($key) {
+                if (!$key || !/arrow/i.test($key)) return;
+                forEach.call(this.element.getElementsByClassName('view'), (e) => {
+                    const {key, active} = e.dataset;
+                    if (key === $key) {
+                        e.dataset.active = 'true';
+                        active === 'false' && JS.Template.$get(e).on();
+                    } else {
+                        e.dataset.active = 'false';
+                        active === 'true' && JS.Template.$get(e).off();
+                    }
+                })
+                return this;
+            }
+
+        },
+
+        $load = () => {
+            APP.getJSON().then(data => {
+                $container.setData(data);
+            })
+        };
+
+    document.addEventListener('keyup', e => $container.render(e.key));
+    document.addEventListener('mouseenter', (e) => document.body.focus());
+    window.addEventListener('message', $load)
+
+    $load();
+    document.body.focus();
+</script>
+
+</body>
+</html>

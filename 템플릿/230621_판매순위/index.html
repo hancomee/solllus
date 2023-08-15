@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+
+    <link href="/dist/fonts/SpoqaHanSansNeo.css" rel="stylesheet" type="text/css">
+    <link href="/dist/lib/css/reboot.css" rel="stylesheet" type="text/css">
+    <style>
+
+        html, body {
+            width: 100%;
+            height: 100%;
+
+            background-color: #ccc;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        nav {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+
+            padding: 0 1.5rem;
+            height: 8rem;
+            background-color: #104a0f;
+            color: #afffae;
+            background-color: #203f54;
+            color: #aae8ff;
+            font-size: 3rem;
+        }
+
+        #timer {
+            color: white;
+        }
+
+        #container {
+            flex: 1 1 auto;
+            padding: .5rem;
+        }
+
+
+        .container {
+            position: relative;
+            height: 100%;
+        }
+
+        .item {
+            position: absolute;
+            padding: 1rem;
+
+            color: #444;
+            left: 250%;
+        }
+
+        .box {
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            background-color: #fff;
+            border-radius: 1rem;
+        }
+
+        .info {
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+        }
+
+        .thumb {
+            height: 25rem;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: #666;
+        }
+
+        .rank {
+            position: relative;
+            margin-right: 1rem;
+            height: 70%;
+
+            background-color: #c1c3c1;
+            border-radius: 0.75rem;
+        }
+
+        .rank img {
+            visibility: hidden;
+            height: 100%;
+        }
+
+        span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+
+            font-size: 5rem;
+            color: white;
+            font-weight: bolder;
+        }
+
+        .item[data-index="1"] {
+            left: -150%;
+        }
+
+        .item[data-index="1"] .box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item[data-index="1"] .thumb {
+            flex: 1 1 auto;
+            height: 100%;
+        }
+
+        .item[data-index="1"] .info {
+            flex: 1 1 auto;
+            justify-content: center;
+            padding: 2rem 0;
+            font-size: 6rem;
+        }
+
+        .item:not([data-index="1"]) .thumb {
+            display: none;
+        }
+
+        .item:not([data-index="1"]) .info {
+            font-size: 4rem;
+            height: 100%;
+        }
+
+        [data-index="1"] .rank {
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 2rem;
+
+            width: 15rem;
+            height: 15rem;
+            background-color: #bb4040;
+            border: 5px solid white;
+        }
+
+        [data-index="1"] .rank span {
+            font-size: 8rem;
+        }
+
+
+        [data-index="2"] .rank {
+            background-color: #579fc1;
+        }
+
+        [data-index="3"] .rank {
+            background-color: #84a764;
+        }
+
+
+        * {
+            --time: 1s;
+            transition: var(--time) ease left, var(--time) ease top, var(--time) ease right, var(--time) ease bottom;
+        }
+
+
+    </style>
+    <style id="style"></style>
+</head>
+<body tabindex="-1">
+
+
+<nav>
+    <strong>
+        <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" fill="currentColor" class="bi bi-trophy-fill" viewBox="0 0 16 16">
+            <path d="M2.5.5A.5.5 0 0 1 3 0h10a.5.5 0 0 1 .5.5c0 .538-.012 1.05-.034 1.536a3 3 0 1 1-1.133 5.89c-.79 1.865-1.878 2.777-2.833 3.011v2.173l1.425.356c.194.048.377.135.537.255L13.3 15.1a.5.5 0 0 1-.3.9H3a.5.5 0 0 1-.3-.9l1.838-1.379c.16-.12.343-.207.537-.255L6.5 13.11v-2.173c-.955-.234-2.043-1.146-2.833-3.012a3 3 0 1 1-1.132-5.89A33.076 33.076 0 0 1 2.5.5zm.099 2.54a2 2 0 0 0 .72 3.935c-.333-1.05-.588-2.346-.72-3.935zm10.083 3.935a2 2 0 0 0 .72-3.935c-.133 1.59-.388 2.885-.72 3.935z"></path>
+        </svg>
+        Today Best</strong>
+    <div id="timer" class="ms-auto"></div>
+</nav>
+
+<div id="container">
+    <div class="container">
+        <div class="item" data-template="?item">
+            <div class="box">
+                <div class="thumb"></div>
+                <div class="info">
+                    <div class="rank">
+                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
+                        <span></span>
+                    </div>
+                    <strong></strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+<script>
+
+
+    let data = {
+        values: [
+            {
+                name: '아메리카노',
+                count: 25,
+                img: 'https://img.seoul.co.kr/img/upload/2019/02/13/SSI_20190213100441_O2.jpg',
+            },
+            {
+                name: '자몽쥬스',
+                count: 15,
+                img: null,
+            },
+            {
+                name: '레모네이드',
+                count: 20,
+                img: null,
+            },
+            {
+                name: '홍차',
+                count: 1,
+                img: null,
+            },
+            {
+                name: '초코칩 프라푸치노',
+                count: 23,
+                img: null,
+            },
+            /*{
+                name: '음료수',
+                count: 8,
+                img: null,
+            },*/
+
+        ]
+    }
+
+    const
+
+        [$container, $timer] = JS.selector('.container timer'),
+
+        Item = class extends JS.Template {
+
+            setIndex(index) {
+                this.element.dataset.index = index;
+                this.element.getElementsByTagName('span')[0].textContent = index;
+                return this;
+            }
+
+            setStyle(data) {
+                let array = [],
+                    $strong = this.element.getElementsByTagName('strong')[0],
+                    $thumb = this.element.getElementsByClassName('thumb')[0];
+
+                for (let p in data) array.push(p + ':' + data[p]);
+                this.element.setAttribute('style', array.join('; '));
+                $strong.textContent = this.data.name;
+
+                if (this.data.img)
+                    $thumb.style.backgroundImage = 'url("' + APP.src(this.data.img) + '")';
+
+                return this;
+            }
+
+            equals(data) {
+                return this.data.name === data.name;
+            }
+        },
+
+        mode = {
+            portrait(W, H, data) {
+                $container.textContent = '';
+
+                let [first, ...rest] = data.map(val => new Item(val).apply().appendTo()),
+                    len = rest.length,
+                    half = H / 2,
+                    height = half / len,
+                    index = 1;
+
+                first.setIndex(index++);
+                rest.forEach(item => item.setIndex(index++));
+
+                setTimeout(() => {
+                    first.setStyle({left: 0, top: 0, bottom: 0, width: '100%', height: half.toFixed(2) + 'px'});
+                    rest.forEach((item, i) => {
+                        item.setStyle({
+                            left: 0, height: height.toFixed(2) + 'px',
+                            top: (half + (height * i)).toFixed(2) + 'px', width: '100%',
+                            'transition-delay': '.' + ((i + 1) * 2) + 's'
+                        });
+                    });
+                }, 100)
+            },
+
+            landscape(W, H, data) {
+
+                $container.textContent = '';
+
+                let [first, ...rest] = data.map(val => new Item(val).apply().appendTo()),
+                    len = rest.length,
+                    height = (H / len).toFixed(2),
+                    index = 1;
+
+                first.setIndex(index++);
+                rest.forEach(item => item.setIndex(index++));
+
+                setTimeout(() => {
+                    first.setStyle({left: 0, top: 0, bottom: 0, width: '50%', height: H + 'px'});
+                    rest.forEach((item, i) => {
+                        item.setStyle({
+                            left: '50%', height: height + 'px',
+                            top: (height * i) + 'px', width: '50%',
+                            'transition-delay': '.' + ((i + 1) * 2) + 's'
+                        });
+                    });
+                }, 100)
+
+            }
+        },
+
+        $init = (data) => {
+            data = data.sort((a, b) => a.count > b.count ? -1 : 1);
+            const W = $container.offsetWidth, H = $container.offsetHeight;
+            if (W > H) mode.landscape(W, H, data);
+            else mode.portrait(W, H, data);
+        },
+
+        loop = () => {
+            $init(data.values);
+            setTimeout(loop, 10000);
+        },
+
+        timer = () => {
+            $timer.innerHTML = JS.datetime(new Date(), '<small>{yyyy}/{MM}/{dd}({E}) {ap}</small> <strong>{h}:{mm}:{ss}</strong>');
+            setTimeout(timer, 1000);
+        };
+
+    APP.getJSON().then(value => {
+        if (value) {
+            data = value;
+            loop();
+            timer();
+        }
+    });
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            height: 100%;
+        }
+
+        nav {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            display: flex;
+            padding: 1rem 3rem;
+            opacity: 0;
+            transition: .3s ease opacity;
+            background-color: black;
+            z-index: 1;
+        }
+
+        nav:hover {
+            opacity: 1;
+        }
+
+        input {
+            padding: 0 2rem;
+            flex: 1 1 auto;
+            font-size: 2rem;
+            color: #666;
+            font-weight: bolder;
+            outline: 0;
+        }
+
+        main {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        main > video {
+            flex: 1 1 auto;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        #log {
+            position: fixed;
+            right: .5rem;
+            bottom: .5rem;
+
+            padding: .75rem;
+            white-space: pre;
+            font-size: 1rem;
+            color: white;
+            z-index: 9999;
+        }
+
+        #log:before {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+
+            background-color: black;
+            opacity: .5;
+            content: '';
+            z-index: -1;
+        }
+
+    </style>
+</head>
+<body tabindex="-1">
+
+
+<nav><input></nav>
+<main></main>
+
+<div id="log"></div>
+<script>
+
+    const
+        log = document.getElementById('log'),
+        input = document.getElementsByTagName('input')[0],
+        main = document.getElementsByTagName('main')[0];
+
+
+    input.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') {
+            const value = input.value.trim();
+            if (value) {
+
+                const video = document.createElement('video'),
+                    source = document.createElement('source');
+
+
+                video.onloadedmetadata = () => {
+                    for (let p in source) {
+                        if (typeof source[p] !== 'function' && source[p] != null)
+                            console.log(p, source[p]);
+                    }
+
+                }
+
+                video.autoplay = true;
+                video.controls = true;
+                video.loop = true;
+
+                video.appendChild(source);
+                source.src = value;
+
+                main.textContent = '';
+                main.appendChild(video);
+            }
+        }
+    });
+
+    document.body.focus();
+
+</script>
+
+</body>
+</html>

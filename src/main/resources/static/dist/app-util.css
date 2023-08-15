@@ -1,0 +1,33 @@
+[clock] {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  font-size: 3rem; }
+
+[clock] > li:first-child {
+  text-align: center;
+  font-size: .65em; }
+
+[clock] > li:last-child {
+  display: flex;
+  align-items: center;
+  line-height: 1; }
+
+[clock] > li:last-child > small {
+  padding: 0 .1em; }
+
+[clock] [title] {
+  position: relative; }
+
+[clock] [title]:before {
+  position: relative;
+  top: -.4em;
+  padding: .05em .3em;
+  margin: 0 .3em 0 .5em;
+  font-size: .5em;
+  content: attr(title);
+  border-radius: .1em;
+  background-color: white;
+  color: #555;
+  letter-spacing: -.05em; }

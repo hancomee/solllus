@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>한컴기획</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+
+    <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+
+        *, ::before, ::after {
+            box-sizing: border-box;
+        }
+        body, pre, input, textarea {
+            font-family: 'Spoqa Han Sans Neo';
+        }
+
+
+        html, body, iframe {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+
+            background-color: #074478;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+        }
+
+        .main {
+            margin-top: 35%;
+            width: 70%;
+            color: white;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-family: 'League Spartan', 'Spoqa Han Sans Neo', cursive;
+        }
+
+        .brand strong {
+            font-weight: 400;
+            font-size: 3rem;
+            line-height: .65;
+        }
+
+        .brand small {
+            font-size: 1.35rem;
+            color: #94bbdd;
+        }
+
+        .input {
+            display: none;
+            margin-top: 1rem;
+            font-weight: bolder;
+        }
+
+        .input.active {
+            display: flex;
+        }
+
+
+        input {
+            flex: 1 1 auto;
+            padding: 1rem 2rem;
+            width: 100%;
+            border: 0;
+            outline: 0;
+
+            height: 3rem;
+            font-size: 1.2rem;
+            font-weight: bolder;
+            color: #074478;
+
+            border-top-left-radius: 1.5rem;
+            border-bottom-left-radius: 1.5rem;
+        }
+
+        input:last-child {
+            border-top-right-radius: 1.5rem;
+            border-bottom-right-radius: 1.5rem;
+        }
+
+        input + span {
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            padding: 0 1rem;
+            white-space: nowrap;
+            border-top-right-radius: 1.5rem;
+            border-bottom-right-radius: 1.5rem;
+            background-color: #3672a5;
+
+            cursor: pointer;
+        }
+
+        input[disabled] {
+            color: #b2d7f7 !important;
+        }
+
+        #main.active .input {
+            display: flex !important;
+        }
+
+        body.login {
+            align-items: center;
+        }
+
+        body.login #main {
+            margin: 0;
+        }
+
+        body.login #main .input {
+            display: none !important;
+        }
+
+        @media (min-width: 1000px) {
+
+            .main {
+                margin-top: 10rem;
+                width: initial;
+            }
+
+            .input {
+                margin-top: 1.5rem;
+            }
+
+            input {
+                height: 4rem;
+                font-size: 1.6rem;
+
+                border-top-left-radius: 2rem;
+                border-bottom-left-radius: 2rem;
+            }
+
+            input:last-child {
+                border-top-right-radius: 2rem;
+                border-bottom-right-radius: 2rem;
+            }
+
+            input + span {
+                border-top-right-radius: 2rem;
+                border-bottom-right-radius: 2rem;
+            }
+        }
+    </style>
+</head>
+<body class="login">
+
+
+<div id="main" class="main">
+    <div class="brand">
+        <strong>solllus</strong>
+        <!--<small>Smart Display</small>-->
+    </div>
+    <div class="input active">
+        <input id="id" spellcheck="false" autocomplete="off">
+    </div>
+    <div class="input">
+        <input id="pass" spellcheck="false" autocomplete="off">
+        <span id="login">Login</span>
+    </div>
+</div>
+
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel.js"></script>
+<script>
+
+    const
+        [$main, $id, $pass, $loginBtn] = JS.selector('main id pass login'),
+        $passHandler = () => {
+            if ($pass.value)
+                JS.fetch('POST:/data/i/login/pass', [$id.value, $pass.value].join('\n'))
+                    .then(res => res.json())
+                    .then(flag => {
+                        if (flag === true) {
+                            location.href = '/admin';
+                        }
+                    })
+        };
+
+    // 아이디 체크
+    $id.addEventListener('keyup', () => {
+        if ($id.value) {
+            $id.value = $id.value.toLocaleLowerCase();
+            JS.fetch('POST:/data/i/login/check', $id.value).then(res => res.json())
+                .then(flag => {
+                    if (flag) {
+                        $main.classList.add('active');
+                        $id.setAttribute('disabled', 'true');
+                        $pass.focus();
+                    }
+                });
+        }
+
+    });
+
+    $pass.addEventListener('keyup', $passHandler);
+    $loginBtn.addEventListener('click', $passHandler);
+
+    JS.fetch('POST:/data/i/name').then(res => res.json()).then(([id, roles]) => {
+        if (!id) {
+            document.body.classList.remove('login');
+            $id.focus();
+        } else location.href = '/admin';
+    });
+
+</script>
+</body>
+</html>

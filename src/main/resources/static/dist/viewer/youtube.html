@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <style>
+        html, body, iframe {
+            overflow: hidden;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            /*transition: .1s ease opacity;*/
+        }
+
+        body.hide {
+            opacity: 0;
+        }
+
+        body:after {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+
+            content: '';
+            z-index: 9999;
+        }
+
+        iframe {
+            overflow: hidden;
+            border: 0;
+        }
+
+        #log {
+            position: fixed;
+            right: 1rem;
+            bottom: 1rem;
+            color: white;
+            text-shadow: 0 0 2px black, 0 0 2px black;
+            opacity: .3;
+            font-size: .85rem;
+        }
+
+    </style>
+    <style id="style"></style>
+</head>
+<body tabindex="-1" class="hide">
+
+<div id="player"></div>
+<div id="log"></div>
+
+<script>
+
+    let
+        $size,
+        $log = document.getElementById('log'),
+        $play = ({v: videoId}) => {
+
+            // API :: https://developers.google.com/youtube/iframe_api_reference?hl=ko
+            let
+
+                SIGN = {
+                    '-1': '시작되지 않음',
+                    1: '재생 중',
+                    2: '일시중지',
+                    3: '버퍼링',
+                    5: '동영상 신후'
+                },
+
+                // ?초간 재생시간에 변화가 없을 경우, 멈췄다고 판단하고 강제 새로고침한다.
+                watcherDuration = 60,   // 초단위
+                _watcher = (function (setTimeKey, player, currentTime) {
+                    const
+                        loop = () => {
+                            if (player.getCurrentTime() === currentTime) {
+                                location.reload();
+                            }
+                            currentTime = player.getCurrentTime();
+                            setTimeKey = setTimeout(loop, watcherDuration * 1000);
+                        }
+                    return ($player) => {
+                        clearTimeout(setTimeKey);
+                        if(!(player = $player)) return;
+                        currentTime = player.getCurrentTime();
+                        setTimeout(loop, watcherDuration * 1000);
+                    };
+                })(),
+                _setSize = () => {
+                    if ($size) {
+                        const iframe = document.getElementById('player');
+                        iframe.width = $size.W;
+                        iframe.height = $size.H;
+                    }
+                },
+                $player,
+                handlers = {
+                    // 유튜브 API 최초 로딩 후 호출
+                    $init() {
+                        $player = new YT.Player('player', {
+                            videoId: videoId,
+                            playerVars: {
+                                controls: 0,
+                                mute: 1,
+                                version: 3,
+                                vq: 'highres',
+                                cc_load_policy: 0,  // 자막
+                                /*autoplay: 1,
+                                loop: 1,*/
+                                autohide: 1,
+                                showinfo: 0,
+                                rel: 0          // 추천영상 끄기
+                            },
+                            playlist: videoId,   //재생할 영상 리스트
+                            events: {
+                                'onReady': handlers.onPlayerReady,
+                                'onStateChange': handlers.onPlayerStateChange
+                            }
+                        });
+
+                    },
+                    // 4. The API will call this function when the video player is ready.
+                    onPlayerReady(e) {
+                        _setSize();
+                        $player.setPlaybackQuality('highres');
+                        $player.playVideo();
+                    },
+                    // 5. The API calls this function when the player's state changes.
+                    //    The function indicates that when playing a video (state=1),
+                    //    the player should play for six seconds and then stop.
+                    onPlayerStateChange(e) {
+                        document.body.focus();
+
+                        /*
+                         * getPlayerState():number
+                         * -1 :시작되지 않음
+                         *  0 : 종료
+                         *  1 : 재생 중
+                         *  2 : 일시중지
+                         *  3 : 버퍼링
+                         *  5 : 동영상 신호
+                         *
+                         * setPlaybackQuality(string)
+                         * :: small  medium  large  hd720  hd1080  highres  default
+                         */
+                        if (e.data !== 1 && e.data !== 2) document.body.classList.add('hide');
+                        else document.body.classList.remove('hide');
+
+                        if (e.data === 0) {
+                            _setSize();
+                            $player.playVideo();
+                        }
+
+                        if (e.data === 1) {
+                            _watcher($player);
+                        }
+
+                        $log.textContent = $player.getPlaybackQuality();
+                    }
+                },
+
+                tag = document.createElement('script'),
+                [firstScriptTag] = document.getElementsByTagName('script');
+
+            tag.src = "https://www.youtube.com/iframe_api";
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+            window['onYouTubeIframeAPIReady'] = handlers.$init;
+
+            document.body.addEventListener('keyup', (e) => {
+                // [ArrowUp] 볼륨 켜기
+                if (e.key === 'ArrowUp') {
+                    if (!$player.__volumn) {
+                        $player.unMute();
+                        $player.setVolume(100);
+                        $player.__volumn = true;
+                    }
+                }
+                // [ArrowDown] 볼륨 끄기
+                if (e.key === 'ArrowDown') {
+                    if ($player.__volumn) {
+                        $player.mute();
+                        $player.__volumn = false;
+                    }
+                }
+                // [Enter] 정지/재생
+                if (e.key === 'Enter') {
+                    if (!$player.__pause) {
+                        $player.pauseVideo();
+                        _watcher();
+                        $player.__pause = true;
+                    } else {
+                        $player.playVideo();
+                        $player.__pause = false;
+                    }
+                }
+            })
+        };
+
+
+    (function (_W, _H) {
+
+        // 세로버전
+        if (_W < _H) {
+            let W = _H + (_H * ((_H - _W) / _W)),
+                H = _H,
+                left = (W - _W) / 2;
+
+            document.getElementById('style').textContent = `
+            iframe {
+                position: fixed;
+                top: 0;
+                left: -${left}px;
+                width: ${W}px;
+                height: ${H}px;
+            }`;
+
+            $size = {W: W, H: H};
+        }
+
+
+    })(window.innerWidth, window.innerHeight);
+
+
+    // 데이터 로딩
+    (function (search, map = {}) {
+        search.split('&').forEach(val => {
+            const [key, value] = val.split('=');
+            map[key] = value;
+        });
+        $play(map);
+    })(location.search.slice(1));
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body, .container, table {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            font-family: 'Spoqa Han Sans Neo';
+        }
+
+        nav {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            padding: 2rem;
+            background-color: #283b52;
+
+            font-size: 4rem;
+            font-weight: bolder;
+            color: white;
+        }
+
+        nav small {
+            font-size: 3rem;
+            font-weight: 200;
+        }
+
+        #current {
+            color: #94c5ff;
+            text-shadow: 0px 0px 7px black;
+        }
+
+        table {
+            flex: 1 1 auto;
+            table-layout: fixed;
+            border-collapse: collapse;
+        }
+
+        table th {
+            padding: 1rem 0;
+            width: 14.2%;
+            background-color: #2b486c;
+            color: #ddd;
+            border: 1px solid #112844;
+            font-weight: bolder;
+        }
+
+        table th:first-child {
+            background-color: #ad1010;
+        }
+
+        table td {
+            padding: .5rem;
+            position: relative;
+            height: 10%;
+            text-align: left;
+            vertical-align: top;
+            color: #888;
+            border: 1px solid #cfcfcf;
+        }
+
+        td:before {
+            position: absolute;
+            right: .5rem;
+            top: .5rem;
+            content: attr(data-date);
+
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: transparent;
+            border-radius: 50%;
+            color: #333;
+        }
+
+        td[data-national-day="true"][data-day-off="true"] {
+            font-weight: bolder;
+            color: #ad1010;
+        }
+
+        td[data-day-off="true"]:not([data-this-month="false"]):before {
+            font-weight: bolder;
+            color: white;
+            background-color: #ad1010;
+        }
+
+        td[data-this-month="false"] {
+            color: #aaa !important;
+            background-color: #ededed !important;
+        }
+
+        td > div {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        td .anniversary {
+            flex: 0 0 auto;
+            font-size: .75rem;
+        }
+
+        td .anniversary > span {
+            margin-right: .7rem;
+            color: #999;
+        }
+
+        td .data {
+            padding-right: 2rem;
+            flex: 1 1 auto;
+            margin-top: 0.7rem;
+            font-size: .8rem;
+            font-weight: bolder;
+            color: #6184a9;
+        }
+
+        td .data > div {
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+    </style>
+
+    <style id="style"></style>
+</head>
+<body>
+
+<nav>
+    <div id="current"></div>
+    <div id="time" style="margin-left: auto"></div>
+</nav>
+
+<div class="container">
+    <table>
+        <thead>
+        <tr>
+            <th>Sunday</th>
+            <th>Monday</th>
+            <th>Tuesday</th>
+            <th>Wednesday</th>
+            <th>Thursday</th>
+            <th>Friday</th>
+            <th>Saturday</th>
+        </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+    </table>
+</div>
+
+<script src="/dist/lib/js/js-base.js"></script>
+<!--<script src="../../src/main/resources/static/dist/lib/js/js-base.js"></script>-->
+<script>
+
+
+    let saveDate = new Date(),
+
+        // 한컴전용
+        $$init = (weekArray) => {
+            const st = weekArray[0][0], et = weekArray[weekArray.length - 1][6],
+                config = {url: 'http://115.23.187.44:8259/calendar/list?st=' + _convert(st) + '&et=' + _convert(et)};
+
+            JS.crawling(config).then((jsondata) => {
+                const data = JSON.parse(jsondata.replace(/(\d{2})\-/g, '$1'));
+                forEach.call(tbody.getElementsByClassName('data'), (e) => {
+                    const list = data[e.getAttribute('data-date')];
+                    if (list) e.innerHTML = list.map(v => '<div>[' + v.category + '] ' + v.text + '</div>').join('');
+                    else e.textContent = '';
+                });
+            });
+        };
+
+    const
+        [tbody, $current, $time] = JS.selector('tbody current time'),
+
+        _convert = (str_date) => [str_date.slice(0, 4), str_date.slice(4, 6), str_date.slice(6)].join('-'),
+        _zero = (n, i) => ('0000' + n).slice(i * -1),
+        _str = (date) => date.getFullYear() + _zero(date.getMonth() + 1, 2) + _zero(date.getDate(), 2),
+        _move = (y, m, i) => {
+            m += i;
+            if (m < 1) {
+                y--;
+                m = 12;
+            }
+            if (m > 12) {
+                y++;
+                m = 1;
+            }
+            return y + '' + _zero(m, 2);
+        },
+
+        querystring = (string) => {
+            const map = {};
+            string.split('&').forEach(v => {
+                let [key, value] = v.split('=');
+                map[key] = /\d+/.test(value) ? parseInt(value) : value;
+            });
+            return map;
+        },
+
+        weekList = (date) => {
+
+            date = date.toString();
+
+            let year = parseInt(date.slice(0, 4)), month = parseInt(date.slice(-2)) - 1,
+                start = new Date(year, month, 1),
+                end = new Date(year, month + 1, 0),
+                result = [];
+
+            if (start.getDay() > 0)
+                start = new Date(year, month, (start.getDay() - 1) * -1);
+            end = new Date(year, month, (6 - end.getDay()) + end.getDate());
+
+            while (start.getTime() < end.getTime()) {
+                let array = [];
+                for (let i = 0; i < 7; i++) {
+                    array[i] = _str(start);
+                    start = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 1);
+                }
+                result.push(array);
+            }
+            return result;
+        },
+
+        createTbody = (array, map) => {
+            const result = [];
+            array.forEach((list, i) => {
+                const tr = document.createElement('tr');
+                list.forEach(value => {
+                    const td = document.createElement('td'),
+                        data = map[value],
+                        html = '<div><div class="anniversary">{list}</div><div class="data" data-date="{date}"></div></div>';
+                    for (let p in data) td.dataset[p] = data[p];
+                    td.dataset.date = parseInt(value.slice(-2));
+                    td.innerHTML = JS.replace(html, {list: data.anniversaryList.map(v => '<span>' + v.name + '</span>').join(''), date: value});
+                    tr.appendChild(td);
+                });
+                result[i] = tr;
+            });
+            return result;
+        },
+
+        createHandler = (number_ym, map) => {
+            const weekArray = weekList(number_ym),
+                htmlArray = createTbody(weekArray, map),
+                str = number_ym.toString(),
+                currentYM = str.slice(0, 4) + ' / ' + parseInt(str.slice(4));
+
+            // 저장된
+            return () => {
+                document.body.dataset.currentDate = number_ym;
+                tbody.textContent = '';
+                htmlArray.forEach(tr => tbody.appendChild(tr));
+                $current.innerHTML = currentYM;
+                $$init(weekArray);
+            }
+
+        },
+
+        todayStyle = (date) => {
+            document.getElementById('style').innerText = 'table td[data-solar-date="' + JS.datetime(date, 'yyyyMMdd') + '"] {' +
+                'z-index: 1; outline: 5px solid #289b27;' + '}';
+        },
+
+        crawling = (function () {
+            const handlers = {};
+
+            return (string_yyyyMM) => {
+                todayStyle(saveDate);
+                if (handlers[string_yyyyMM]) return handlers[string_yyyyMM]();
+                JS.crawling({
+                    url: 'https://m.search.naver.com/p/csearch/content/qapirender.nhn?where=nexearch&key=CalendarAnniversary&pkid=134&q=' + string_yyyyMM + '%EC%9B%94&_callback=d',
+                }).then((result) => {
+                    const {openCalendar: {daysList}} = JSON.parse(/\((.*)\)/.exec(result.replace(/\n/g, ''))[1]),
+                        map = {};
+                    daysList.forEach(v => map[v['solarDate']] = v);
+                    const handler = createHandler(string_yyyyMM, map);
+                    handlers[string_yyyyMM] = handler;
+                    handler();
+
+                })
+            }
+
+        })(),
+
+        hashHandler = () => {
+            let {date} = querystring(location.hash.slice(1));
+            if (!date) {
+                date = new Date();
+                return location.hash = 'date=' + date.getFullYear() + '' + _zero(date.getMonth() + 1, 2);
+            }
+            crawling(date);
+        },
+
+        timeLoop = () => {
+            const date = new Date();
+            if (saveDate.getMonth() !== date.getMonth() || saveDate.getDate() !== date.getDate()) {
+                location.hash = '';
+                saveDate = date;
+            }
+            $time.innerHTML = JS.datetime(date, '<small>yyyy-MM-dd(E)</small> <strong>h:mm</strong>');
+            setTimeout(timeLoop, 500);
+        };
+
+    window.addEventListener('hashchange', hashHandler);
+    hashHandler();
+
+    document.addEventListener('keyup', (e) => {
+        let value = document.body.dataset.currentDate,
+            y = parseInt(value.slice(0, 4)), m = parseInt(value.slice(4));
+
+        switch (e.key) {
+            case 'ArrowLeft' :
+                location.hash = 'date=' + _move(y, m, -1);
+                return;
+            case 'ArrowRight' :
+                location.hash = 'date=' + _move(y, m, 1);
+                return;
+            case 'ArrowUp' :
+                location.hash = '';
+                return;
+        }
+    });
+
+    timeLoop();
+
+    if (location.search.indexOf('name=hancomee') === -1) {
+        $$init = () => {
+        };
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+
+    <style>
+
+        html, body {
+            margin: 0;
+            height: 100%;
+            user-select: none;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #333;
+        }
+
+        strong {
+            font-size: 5rem;
+            color: white;
+        }
+
+    </style>
+
+</head>
+<body>
+
+<strong>Rotate</strong>
+
+
+<script>
+
+    let
+        [strong] = document.getElementsByTagName('strong'),
+        fixed = parseInt(localStorage.getItem('display.global.rotate')) || 0,
+        rotate = fixed,
+        render = () => {
+            let val = rotate - fixed;
+            strong.style.transform = 'rotate(' + val + 'deg)';
+            strong.textContent = 'Rotate ' + rotate;
+        },
+        dispatcher = () => {
+            let val = rotate + 90;
+            if(val > 270) val = 0;
+            rotate = val;
+            localStorage.setItem('display.global.rotate', rotate);
+            render();
+        };
+
+    document.addEventListener('click', dispatcher);
+    document.addEventListener('keyup', (e) => {
+        if(e.key === 'ArrowRight') dispatcher();
+    })
+    render();
+
+</script>
+
+</body>
+</html>

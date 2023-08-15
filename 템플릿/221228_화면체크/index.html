@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="kr">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+    <link href='/dist/lib/css/reboot.css' rel='stylesheet' type='text/css'>
+    <style>
+
+
+        html, body {
+            overflow: hidden;
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #ddd;
+        }
+
+        strong {
+            font-size: 4rem;
+        }
+
+        small {
+            color: #888;
+            font-size: 2rem;
+        }
+
+        #log {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 2rem;
+
+            text-align: center;
+            white-space: pre-line;
+            word-break: break-all;
+            color: #333;
+            font-size: 1.12rem;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="container"></div>
+
+<div id="log"></div>
+
+<script>
+
+    let
+        $container = document.getElementById('container'),
+        $log = document.getElementById('log'),
+        fixed = parseInt(localStorage.getItem('solllus.config.rotate')) || 0,
+        rotate = fixed,
+
+        render = () => {
+            let
+                {innerWidth: W, innerHeight: H, navigator: {userAgent}} = window,
+                val = rotate - fixed,
+                pivot = fixed === 270 || fixed === 90;
+
+            if (rotate === 270 || rotate === 90) {
+                pivot = !pivot;
+            }
+
+            $container.style.transform = 'rotate(' + val + 'deg)';
+            $container.setAttribute('data-rotate', rotate);
+            $log.textContent = userAgent;
+
+            let array = pivot ? [H, W] : [W, H];
+
+            $container.innerHTML = '<strong>' + array.join(' × ') + '</strong>';
+        },
+        dispatcher = (val) => {
+            if (val > 270) val = 0;
+            rotate = val;
+            localStorage.setItem('solllus.config.rotate', rotate);
+            render();
+        };
+
+    document.addEventListener('click', () => dispatcher(rotate + 90));
+    document.addEventListener('keyup', (e) => {
+        switch (e.key) {
+            case 'ArrowUp' : return dispatcher(rotate + 90);
+            case 'ArrowRight' : return dispatcher(rotate + 90);
+            case 'ArrowDown' : return dispatcher(rotate + 90);
+            case 'ArrowLeft' : return dispatcher(rotate + 90);
+        }
+    })
+    render();
+
+
+</script>
+</body>
+</html>

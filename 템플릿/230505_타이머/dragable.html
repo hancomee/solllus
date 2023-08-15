@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <style>
+
+        [draggable="true"].drag {
+            outline: 3px solid yellowgreen;
+        }
+
+        [draggable="true"] {
+            margin: 1rem;
+            width: 5rem;
+            height: 5rem;
+            background-color: black;
+            color: white;
+        }
+    </style>
+
+</head>
+<body>
+
+
+<div draggable="true">1</div>
+<div draggable="true">2</div>
+<div draggable="true">3</div>
+<div draggable="true">4</div>
+<div draggable="true">5</div>
+<div draggable="true">6</div>
+<div draggable="true">7</div>
+
+<script>
+
+    const sortTable = (function ($container, $target) {
+
+        const handler = (e) => {
+            if ($target === e.target || !e.target.draggable) return;
+
+            const {target, offsetX, offsetY, target: {offsetWidth, offsetHeight}} = e;
+
+            if ((offsetHeight / 2 < offsetY)) {
+                if (target.nextElementSibling !== $target) target.parentElement.insertBefore(target, $target);
+            } else {
+                if (target.previousElementSibling !== $target) target.parentElement.insertBefore($target, target);
+            }
+        };
+
+        return ({target, target: {parentElement}}, flag) => {
+            if (!flag) {
+                target.classList.remove('drag');
+                return parentElement.removeEventListener('dragover', handler);
+            }
+            $container = parentElement;
+            $target = target;
+            target.classList.add('drag');
+            parentElement.addEventListener('dragover', handler)
+        }
+    })();
+
+
+    document.addEventListener('dragstart', (e) => {
+        sortTable(e, 1);
+    });
+    document.addEventListener('dragend', (e) => {
+        sortTable(e);
+    });
+
+</script>
+</body>
+</html>

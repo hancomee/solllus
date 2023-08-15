@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+
+  <style>
+
+    html, body, iframe {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+
+      width: 100%;
+      object-fit: contain;
+
+      border: 0 !important;
+      outline: 0 !important;
+    }
+
+  </style>
+</head>
+<body>
+
+
+<script>
+  (function ([, root, path, name]) {
+    // location에서 주소를 가지고 올때 한글은 모두 encoding 되어 있다.
+    const src = '/' + [root, path, name, 'admin.html'].join('/'),
+            iframe = '<iframe scrolling="yes" src="$"></iframe>'.replace('$', src + location.search + '&t=' + new Date().getTime());
+    document.body.innerHTML = iframe;
+  })(location.pathname.slice(1).split('/'))
+</script>
+</body>
+</html>

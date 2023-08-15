@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+
+    <link href="/dist/fonts/SpoqaHanSansNeo.css" rel="stylesheet" type="text/css">
+    <link href="/dist/lib/css/reboot.css" rel="stylesheet" type="text/css">
+    <link href="/dist/src/app-admin.css" rel="stylesheet" type="text/css">
+    <style>
+
+
+    </style>
+    <style id="style"></style>
+</head>
+<body>
+
+<nav>
+    <a class="home" href="/admin">ADMIN</a>
+    <span class="ms-auto me-2" data-event="upload">upload</span>
+    <span class="ms-auto" data-event="save">save</span>
+</nav>
+
+<div class="container">
+</div>
+
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+<script>
+
+    JS.addEvent({
+        upload() {
+            JS.inputFile({
+                accept([file]) {
+                    const {type, name} = file,
+                        filename = new Date().getTime() + '_' + name;
+                    APP.uploadFiles([{file: file, filename: filename}])
+                        .then(() => APP.removeTemps(filename))
+                        .then(() => APP.setJSON({mediaType: type, filename: filename}))
+                        .then(APP.postMessage)
+                }
+            })
+        }
+    })
+
+
+</script>
+
+</body>
+</html>

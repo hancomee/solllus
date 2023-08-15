@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Time</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&family=Lobster&display=swap" rel="stylesheet">
+
+    <style>
+
+        html {
+            font-size: 2.5vw;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        body {
+            background-color: black;
+            font-family: 'Oswald', sans-serif;
+        }
+
+        #container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #ddd;
+            height: 100%;
+
+            text-align: center;
+            font-weight: bolder;
+        }
+
+        .times {
+            position: relative;
+            display: flex;
+            align-items: center;
+            font-size: 5rem;
+        }
+
+        .times small {
+            position: relative;
+            bottom: -.4rem;
+
+            margin-right: .5rem;
+            font-weight: 100;
+            font-family: 'Lobster', sans-serif;
+        }
+
+        .times > strong {
+            display: flex;
+            justify-content: center;
+            flex: 0 0 auto;
+            margin: 0 .5rem;
+        }
+
+        .times .s {
+            justify-content: right;
+            width: 5rem;
+        }
+
+        .times span {
+            position: relative;
+            top: -.3rem;
+        }
+
+        .line {
+            display: flex;
+            height: 2px;
+            background-color: #5e5e5e;
+        }
+
+        .bar {
+            width: 0%;
+            background-color: #dfa219;
+            transition: .4s ease width;
+        }
+
+        .date {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1rem;
+            font-size: 2rem;
+        }
+
+        .day {
+            margin-left: .5rem;
+        }
+
+        @media (orientation: portrait) {
+            /* 세로 모드일 때 적용할 CSS */
+            html {
+                font-size: 3vw;
+            }
+        }
+
+        @media (orientation: landscape) {
+            /* 가로 모드일 때 적용할 CSS */
+        }
+        /*@media (min-width: 1200px) {
+
+            html {
+                font-size: 50px;
+            }
+
+            .line {
+                width: 100%;
+            }
+        }*/
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <div class="container">
+        <script id="timer" type="text/html">
+            <div class="times" style="position: relative">
+                <small>{ap}</small>
+                <strong class="h">{h}</strong>
+                <span>:</span>
+                <strong class="m">{mm}</strong>
+                <span>:</span>
+                <strong class="s">{ss}</strong>
+            </div>
+            <div>
+                <div class="line">
+                    <div class="bar" style="width: $%"></div>
+                </div>
+            </div>
+            <div class="date">
+                <strong class="datetime">{yyyy}. {M}. {d}</strong>
+                <span class="day">{E}</span>
+            </div>
+        </script>
+    </div>
+</div>
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script>
+
+
+    const
+        [$timer, $container] = JS.selector('timer .container'),
+        timerTemplate = $timer.innerText,
+
+        render = () => {
+            const time = new Date(),
+                html = JS.datetime(time, timerTemplate);
+            $container.innerHTML = html.replace('$', ((time.getMinutes() / 60) * 100));
+        },
+
+        loop = () => {
+            render();
+            setTimeout(loop, 1000);
+        };
+
+    loop();
+
+</script>
+
+</body>
+</html>

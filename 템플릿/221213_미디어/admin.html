@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+
+    <style>
+        html, body {
+            overflow: hidden;
+            height: 100%;
+        }
+
+        body {
+            background-color: black;
+            cursor: pointer;
+        }
+
+        body, #upload {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #upload {
+            width: 12rem;
+            height: 12rem;
+            color: #0addff;
+            font-size: 2.35rem;
+            font-weight: bolder;
+        }
+    </style>
+</head>
+<body tabindex="-1">
+
+<div id="upload">CLICK</div>
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+<script>
+
+    const
+        {body} = document,
+        [$upload] = JS.selector('upload'),
+        {user, root, path, name} = APP.paths,
+
+        upload = (file) => {
+            if (!file || !/image|video/i.test(file.type)) return;
+
+            $upload.textContent = 'uploading.....';
+
+            const prefix = user + '__',
+                filename = prefix + new Date().getTime() + '.data';
+
+            APP.uploadFiles([{file: file, filename: filename}])
+                .then(() => APP.setJSON({mediaType: file.type, filename: filename}))
+                .then(APP.reloadByDisplay)
+                .then(() => APP.removeTemps(filename, prefix))
+                .then(() => {
+                    $upload.textContent = 'success!';
+                    setTimeout(() => $upload.textContent = 'CLICK', 1000);
+                    body.focus();
+                })
+        };
+
+    body.addEventListener('dragend', (e) => e.preventDefault());
+    body.addEventListener('dragover', (e) => e.preventDefault());
+    body.addEventListener('drop', (e) => {
+        e.preventDefault();
+        upload(e.dataTransfer.files[0]);
+    });
+    body.addEventListener('paste', (e) => upload(e.clipboardData.files[0]));
+
+    body.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = false;
+        input.onchange = () => upload(input.files[0]);
+        input.click();
+    });
+
+    body.addEventListener('mouseenter', () => {
+        body.focus();
+    })
+
+    body.focus();
+
+</script>
+
+</body>
+</html>

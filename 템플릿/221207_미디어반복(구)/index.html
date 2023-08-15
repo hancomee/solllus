@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+    <style>
+
+        body {
+            background-color: #111;
+            font-family: 'Spoqa Han Sans Neo';
+        }
+
+        body:before {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            content: 'Loading...';
+            font-size: 2rem;
+            color: #ccc;
+        }
+
+        #container {
+            position: fixed;
+        }
+
+        #container, #container > div, body:before {
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+
+        #container > div {
+            position: absolute;
+            display: flex;
+            visibility: hidden;
+        }
+
+        #container > div.on {
+            visibility: visible;
+        }
+
+        #container > div > img, #container > div > video, #container > div > iframe {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border: 0;
+            outline: 0;
+        }
+
+        #container > div[data-text]:after {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 3%;
+
+            content: attr(data-text);
+            color: white;
+            font-size: 4.5rem;
+            font-weight: bolder;
+            text-shadow: 1px 1px 5px black, 1px 1px 5px black, 1px 1px 5px black, 1px 1px 10px black;
+
+            animation-duration: .4s;
+            animation-name: text;
+            animation-timing-function: ease;
+            animation-direction: alternate;
+            animation-iteration-count: infinite;
+        }
+
+        @keyframes text {
+            from {
+                transform: translateY(5px);
+            }
+            to {
+                transform: translateY(0px);
+            }
+        }
+
+        @keyframes slide-right {
+            from {
+                left: 50px;
+            }
+            to {
+                left: 0;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="container"></div>
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+
+<script>
+
+    let $values, size, index = 0, timekey;
+
+    const
+        {root, path, name} = APP.paths,
+        $container = document.getElementById('container'),
+
+        div = (ele, text) => {
+            const div = document.createElement('div');
+            div.classList.add('media');
+            div.appendChild(ele);
+            text && div.setAttribute('data-text', text);
+            return div;
+        },
+
+        run = (idx = index + 1) => {
+            if (!(idx < size)) idx = 0;
+            index = idx;
+            $values[index].start(index);
+        },
+
+        // 모두 플레이 후 run()을 호출해주면 된다.
+        media = {
+            text(data) {
+                const iframe = document.createElement('iframe'),
+                    ele = div(iframe, data.text);
+                iframe.src = APP.src(data.filename);
+                $container.appendChild(ele);
+                data.start = (idx) => {
+                    iframe.contentWindow.postMessage({index: idx});
+                    forEach.call($container.getElementsByClassName('media'), e => e.classList.remove('on'))
+                    ele.classList.add('on');
+                };
+                $container.appendChild(ele);
+            },
+            video(data) {
+                const video = document.createElement('video'),
+                    source = document.createElement('source'),
+                    ele = div(video, data.text),
+                    provide = new Promise((x => video.onloadstart = x)),
+                    $run = () => run();
+
+                video.muted = true;
+                source.src = APP.src(data.filename);
+                source.type = 'video/mp4';
+                video.appendChild(source);
+
+                data.start = () => {
+                    provide.then(() => {
+                        forEach.call($container.getElementsByClassName('media'), e => e.classList.remove('on'))
+                        ele.classList.add('on');
+                        video.currentTime = 0;
+                        video.play();
+                    })
+                };
+
+                video.onended = $run;
+                video.onerror = $run;
+                $container.appendChild(ele);
+                return data;
+            },
+            image(data) {
+                const image = new Image(),
+                    ele = div(image, data.text),
+                    provide = new Promise((x => image.onload = x));
+                image.src = APP.src(data.filename);
+                data.start = () => {
+                    provide.then(() => {
+                        forEach.call($container.getElementsByClassName('media'), e => e.classList.remove('on'))
+                        ele.classList.add('on');
+                        setTimeout(run, data.time * 1000);
+                    });
+                }
+                $container.appendChild(ele);
+                return data;
+            }
+        },
+
+        init = (values) => {
+            size = values.length;
+            $values = values.map(value => {
+                media[value.mediaType.split('/')[0]](value);
+                return value;
+            });
+            run(0);
+        };
+
+    APP.getJSON().then(values => values && values.length && init(values.filter(val => !val.ignore)));
+
+    // <iframe>용
+    window.addEventListener('message', (e) => {
+        run();
+    });
+
+    // 비디오 볼륨
+    $container.addEventListener('click', () => {
+        forEach.call(container.getElementsByTagName('video'), (e) => {
+            if (e.muted) {
+                e.muted = false;
+                e.volume = 1;
+            } else e.muted = true;
+        });
+    });
+
+
+</script>
+</body>
+</html>

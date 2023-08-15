@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>certify</title>
+
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="/dist/lib/css/reboot.css"/>
+
+    <style>
+        html, body {
+            height: 100%;
+            user-select: none;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #103760;
+        }
+
+        body:after {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            content: '';
+            z-index: 9999;
+        }
+
+        .container {
+            text-align: center;
+            white-space: nowrap;
+            color: white;
+            font-size: 4rem;
+        }
+
+        small {
+            font-size: 2.25rem;
+        }
+
+        strong {
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <small></small>
+    <div>
+        <strong>키가 존재하지 않습니다.</strong>
+    </div>
+
+</div>
+
+
+<script>
+
+    let
+        LOCAL_KEY = 'solllus.certify.key',
+        [small] = document.getElementsByTagName('small'),
+        [strong] = document.getElementsByTagName('strong');
+
+    (function (
+        [, user, index],
+        key = localStorage.getItem(LOCAL_KEY),
+        fetchCue = Promise.resolve(),
+        fetchOn = 0
+    ) {
+
+        let
+            touchCount = 0,
+            $certify = {
+                reset() {
+                    localStorage.removeItem(LOCAL_KEY)
+                    strong.textContent = '인증키 삭제';
+                },
+                create() {
+                    fetchOn = 1;
+                    return fetchCue = fetchCue.then(() => {
+                        return fetch('/data/i/certify/create').then(res => res.text()).then(value => {
+                            localStorage.setItem(LOCAL_KEY, key = value);
+                            strong.textContent = key;
+                            fetchOn = 0;
+                        });
+                    });
+                },
+                check() {
+
+                    strong.textContent = key;
+
+                    fetchOn = 1;
+                    return fetchCue = fetchCue.then(() => {
+                        return fetch('/data/i/certify?index=' + index + '&name=' + user + '&value=' + key)
+                            .then((res) => res.text())
+                            .then(serverKey => {
+                                // ok를 받으면 여기서 페이지 아웃
+                                if (serverKey) {
+                                    let time = 5,
+                                        loop = () => {
+                                            if (time === 0) {
+                                                localStorage.setItem('solllus.certify.datetime', new Date().getTime().toString());
+                                                location.href = ['/v', user, index].join('/');
+                                                return;
+                                            }
+                                            strong.textContent = '[인증완료] ' + time-- + '초 후 접속됩니다';
+                                            setTimeout(loop, 1000);
+                                        };
+                                    loop();
+                                }
+                                fetchOn = 0;
+                            });
+                    });
+                },
+                save(data) {
+                    fetchOn = 1;
+                    return fetchCue = fetchCue.then(() => {
+                        return fetch('/data/i/certify',
+                            {
+                                method: 'PUT',
+                                body: JSON.stringify(data),
+                                headers: {'Content-Type': 'application/json;charset=utf-8'}
+                            })
+                            .then((res) => res.ok)
+                            .then(() => fetchOn = 0);
+                    });
+                }
+            },
+            handler = (e) => {
+                // 마우스와 키보드 이벤트를 모두 동작시키기 위함.
+                if (touchCount < 0 || (e.type !== 'click' && e.key !== 'Enter')) return;
+
+                if (key) {
+                    touchCount++;
+                    document.body.dataset.count = touchCount;
+                    if (touchCount === 9) $certify.save({value: key, index: index, name: user});
+                    else if (touchCount > 9) {
+                        touchCount = -1;    // 이제 클릭이벤트를 막는다.
+                        $certify.check();
+                    }
+                }
+            };
+
+
+        // ?0 : 인증키 삭제
+        if (location.search.slice(1).indexOf('0') !== -1) {
+            return $certify.reset();
+        }
+
+        key ? $certify.check() : $certify.create();
+
+        // 승인된 브라우저라면 바로 main.html페이지로 돌아간다.
+        // 여기까지 실행된다는건 인증이 필요하다는 얘기
+        small.textContent = [user, index].join('/');
+        document.addEventListener('click', handler);
+        document.addEventListener('keyup', handler);
+
+    })(location.pathname.replace(/\/*$/, '').slice(1).split('/'))
+
+</script>
+</body>
+</html>

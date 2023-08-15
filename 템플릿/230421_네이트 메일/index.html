@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #222;
+            font-family: 'Spoqa Han Sans Neo';
+            color: white;
+        }
+
+
+        body.error:after {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: 0;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #999;
+            font-size: 3rem;
+
+            content: 'Connection Error...';
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            flex: 0 0 auto;
+            padding: 2rem;
+            margin-bottom: 1rem;
+            font-size: 3rem;
+            background-color: #124570;
+            border-bottom: 1px solid #ffffff;
+        }
+
+        .size:before {
+            content: '새 메일 : ';
+        }
+
+        .time {
+            margin-left: auto;
+        }
+
+        .time strong {
+            font-size: 4.5rem;
+        }
+
+        #container {
+            flex: 1 1 auto;
+        }
+
+        #container > div {
+            padding: .75rem 2rem;
+            font-size: 2.5rem;
+        }
+
+        #container > div + div {
+            margin-top: .5rem;
+            border-top: 1px solid #888;
+        }
+
+        #container strong {
+            color: #ffcd83;
+        }
+
+        .datetime {
+            margin-right: 2.5rem;
+        }
+
+    </style>
+</head>
+<body>
+
+<nav>
+    <span class="size"></span>
+    <span class="time"></span>
+</nav>
+<div id="container">
+    <div data-template="?msg"></div>
+</div>
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="../../src/main/resources/static/dist/lib/js/js-base.js"></script>
+<script>
+
+    const [$container, $size, $time] = JS.selector('container .size .time'),
+
+        join = (value, command) => {
+            let cursor = 0, i = 0, l = command.length,
+                array = [];
+            for (; i < l;) {
+                let val = value.slice(cursor, cursor = command[i++]);
+                array.push(val);
+                array.push(command[i++]);
+            }
+            array.push(value.slice(cursor))
+            return array.join('');
+        },
+
+        time = () => {
+            $time.innerHTML = JS.datetime(new Date(), 'yyyy-MM-dd(E) <strong>h:mm</strong>');
+            setTimeout(time, 1000);
+        },
+
+        receive = () => {
+            JS.crawling({
+                url: 'https://mail3.nate.com/app/newmail/msg/maillist/?ts=' + new Date().getTime(),
+                method: 'POST',
+                body: 'd=' + encodeURIComponent(JSON.stringify({
+                    "pop3id": "M",
+                    "page": 1,
+                    "mboxid": "total",
+                    "flag": "unseen",
+                    "email": "koje11@empas.com"
+                })),
+                headers: {
+                    'Cookie': 'pcid=162530883303063662; SSL_LOGIN=1; UD3=g5a4a31f4467e395b5d7f6d4f8811068; UA3=MTEwMDMwNDg2MzQ=||; _cc_id=93da25f91aef92477060b00e45566b6d; MailPromotion=ADSNSDEL%7CN%7CN; MM_BK=2022012204590091EA7Dem; __gads=ID=b4f74b7017cf7a40-2241c9275ad5006e:T=1659076537:RT=1659076537:S=ALNI_MYscPWl3oKkk52p_ENYPWpvc9oa9Q; TGPRTB=WDR%3D1daf7b290e922c1acfc9e8818e57b1ff%2CCRT%3Dk-_Kd7SJ4gRmQZdNwVPhnZhJFGrW5HR2zUIqpyDA; MYLOCAL=11B10101; HID=rJQNq1PQAs9dVC4AL0CUTFqRHhGl8oh-Ry4_dZ65KRM6S6CtCfvU9l3HhDHfSYj7; BIZ_CODE=9z-1686326789; SAVED_NATEID=%7C0; Logout=; SVC=; LOGIN=keeplogin=off&iplevel=1&loginid=&xlevel=2; __gpi=UID=000004a3c944bd4a:T=1649434154:RT=1682168864:S=ALNI_MbGVYJ47RSZd0DPyWhTnytjsjsIuw; _ga=GA1.1.1147700372.1625317691; _ga_B7B0G16TBF=GS1.1.1682180068.3.1.1682180068.0.0.0; NateMain=HPClose=Y|20230426|2&Loc=&NCBClose=Y|20230108|2&NateOn=N; SFN=287D9DEDF9556AFCB723CA9C3AD3DE3BD5618400CC75441C6D5903B1F1AD215980436C2959BDF7EEB5E9A69F6EBEA53E071964C96C874D71E1C202645E2A54F006; SFT=287D9DEDF9556AFCB723CA9C3AD3DE3BD5618400CC75441C6D5903B1F1AD215980436C2959BDF7EEB5E9A69F6EBEA53E071964C96C874D71E1C202645E2A54F006; CFN=e43bc14c5a9dab152190d5ef5e2743fbfa17e3b1043733f1722fc036385d41b2a3e64d343d56db255c860b7ffe963f2d8bef4f425e70d3060995031e069bd7266668858256c1c0af99e43f8acf221a8937dbc9fe7143d45576367ea3ddfaca645613c88de70d6dcfb7ef356facc46a55caae13e277a25b22c18348a9c697138a27e9623e6d606170c7de3a132d48a606952c1a30061d1767c4ffc87a2c52b9cb566ef4b19270d0072e4949534d401ccf43eb0db41599b015c7c0fad20c67144b9da5b0826f65e255309e461df306962e46964ae7456c0a5e7237e41209fe56e222a32edea99ccfbb5bc499298036c039; C3RD=435e33cbbcf515462f7483757059b33f37946c683f2f2cdd12407647f6392d1c7a0cf54a0faee5bb5a43b865f984580e826bac0bce37f30f9af3de069711d749a1b7d4042e900c22ab973be5f6106f12a8bc710e445b0db384ad6934c56d1be49fef4f29bd18414f6e08956fb00a8980ee33f99498e97b8c798bc00b09b18758162d56163e3cf7e4f4b17af1ae55bf50; WIM=Y; ndrn=MTEwMDMwNDg2MzQ=||; RDB=01|66|||KR|; ETC=cj=&nick=&cpinfo=3876bfbc0bbb63d1a5db720861c75342746b6dd321df4e7a5dfd51d2d1e2a2eb122fd0c9a87848a30b3cf0f123314ed3; n_=sO28usDn; UAKD=2; RETVAL=4; cto_bundle=qSXCyl9UVzBocVhJMGhmJTJGZ0l3VVFsOFpad0klMkZqcUJzYThORUFaUlduZm1XMlQyQ2lOJTJGcHVEQlVxeU5vY2glMkZTOTElMkJvZHc4T1BoOXpVYndNTEI3Z29zVHQ4YW0lMkJHaTNjZVVQbmx0QUc5Z3Y1bUdXSkM0Z1BUOEs5VTRHbjIwa3FpeDR3NGQ2bGFWTXA2clFkOWpqaE5xaWolMkZlQSUzRCUzRA',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
+                    'Referer': 'https://www.nate.com/'
+                }
+            }, (string) => {
+                const [, data] = JSON.parse(string.replace(/\n/g, '')),
+                    array = [];
+
+                $container.textContent = '';
+
+                if (!data) {
+                    $size.textContent = '0';
+                    return document.body.classList.add('error');
+                }
+                else document.body.classList.remove('error');
+
+                const {messages} = data;
+                $size.textContent = messages? messages.length : 0;
+
+                messages && forEach.call(messages, (msg) => {
+                    msg.datetime = join(msg.receivedAt, [4, '-', 6, '-', 8, ' ', 10, ':', 12, ':']);
+                    array.push(JS.replace('<div><span class="datetime">{datetime}</span><span>{headerFrom}</span><div><strong>{subject}</strong></div></div>', msg))
+                });
+                $container.innerHTML = array.join('')
+            });
+
+            setTimeout(receive, 10000);
+        };
+
+
+    receive();
+    time();
+
+</script>
+</body>
+</html>

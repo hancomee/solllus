@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>COFFEA COFFEE</title>
+
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+    <link href="/dist/lib/css/reboot.css">
+
+    <style>
+
+        pre {
+            margin: 0;
+            padding: 0;
+            font-family: 'Spoqa Han Sans Neo';
+            white-space: break-spaces;
+        }
+
+        html, body, main {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            background-color: #111;
+            font-family: 'Spoqa Han Sans Neo';
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ********* ▼ 헤더 ▼ ********* */
+        #header {
+            display: flex;
+            align-items: center;
+            margin: 1rem 2rem;
+        }
+
+        #brand {
+            font-size: 3rem;
+            font-weight: bolder;
+            color: white;
+
+            animation-duration: 5s;
+            animation-name: header-spacing;
+            animation-timing-function: ease;
+            animation-iteration-count: infinite;
+            animation-direction: alternate-reverse;
+        }
+
+        #datetime {
+            color: #ddd;
+            margin-left: auto;
+            font-size: 2rem;
+        }
+
+        #datetime strong {
+            font-size: 2.35rem;
+        }
+
+        /* ********* ▲ 헤더 ▲ ********* */
+
+        #container {
+            display: flex;
+            margin-bottom: 2rem;
+            flex: 1 1 auto;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            flex: 0 0 auto;
+            width: 50%;
+            color: #eee;
+        }
+
+        .header {
+            display: flex;
+            justify-content: flex-end;
+            padding: 0 3rem;
+            margin-bottom: .35rem;
+            font-size: .8rem;
+        }
+
+
+        /* ********* ▼ 세부 메뉴 ▼ ********* */
+
+        .panel {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+        }
+
+        .menu {
+            display: flex;
+            flex: 1 1 auto;
+            padding: 1rem;
+            border-top: 3px solid white;
+        }
+
+        .menu:not(:first-child) {
+            margin-top: 1.5rem !important;
+        }
+
+        .menu, .text {
+            margin: 0 2rem;
+        }
+
+        .name {
+            flex: 0 0 auto;
+            width: 30%;
+            font-size: 1.5rem;
+        }
+
+        .name > strong {
+            display: block;
+        }
+
+        .name > span {
+            font-size: 1.25rem;
+            color: #999;
+        }
+
+        .items {
+            display: flex;
+            flex-direction: column;
+            /*justify-content: space-between;*/
+            flex: 1 1 auto;
+        }
+
+
+        .item {
+            position: relative;
+            display: flex;
+            align-items: center;
+            font-size: 1.35rem;
+        }
+
+        .item + .item {
+            margin-top: .75rem;
+        }
+
+        .item:before {
+            position: absolute;
+            left: -4.5rem;
+            width: 4rem;
+            white-space: nowrap;
+            text-align: right;
+            font-size: 1rem;
+        }
+
+        .item.soldout:before {
+            content: 'SoldOut';
+            color: #b15cff;
+            font-size: .9rem;
+        }
+
+        .item.soldout > * {
+            text-decoration: line-through;
+            color: #505050;
+        }
+
+        .item.best:before {
+            content: 'Best';
+        }
+
+        .item.best:before, .item.best > * {
+            color: #ffbc00;
+        }
+
+        .item.best:before {
+            animation-name: highlight;
+            animation-iteration-count: infinite;
+            animation-duration: .5s;
+            animation-direction: alternate;
+            transform: rotate(352deg);
+        }
+
+        .item.new:before, .item.new .ko {
+            color: #1efff5;
+        }
+        .item.new:before, .item.new .ko {
+            content: 'New';
+        }
+
+        .item.best:before {
+            animation-name: highlight;
+            animation-iteration-count: infinite;
+            animation-duration: .5s;
+            animation-direction: alternate;
+            transform: rotate(352deg);
+        }
+
+        .ko {
+            margin-right: 1rem;
+            font-weight: bolder;
+        }
+
+        .en {
+            margin-right: auto;
+            font-size: 1.1rem;
+            color: #888;
+        }
+
+        .ko, .en {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .r, .g {
+            flex: 0 0 auto;
+            width: 3.5rem;
+            text-align: center;
+        }
+
+        /* ********* ▼ Display1은 원두판매 ▼ ********* */
+        #bean {
+            display: none;
+            align-items: center;
+            padding: 0 2rem;
+            margin-left: auto;
+            font-size: 3rem;
+            color: #111111;
+            font-weight: bolder;
+            background: #ffd22c;
+            border-radius: 0.3rem;
+        }
+        #bean small {
+            margin-left: 1rem;
+            font-weight: 500;
+            font-size: 1.9rem;
+            letter-spacing: -1.5px;
+        }
+        #bean svg {
+            position: relative;
+            top: 2px;
+            margin-right: 0.75rem;
+        }
+        body[data-index="1"] #bean + div {
+            display: none;
+        }
+        body[data-index="1"] #bean {
+            display: flex;
+        }
+
+        /* ********* ▼ Display2는 노터치 알림 ▼ ********* */
+        #warn {
+            display: none;
+            font-size: 3rem;
+            color: white;
+            font-weight: bolder;
+        }
+
+        #warn strong {
+            display: flex;
+            align-items: center;
+            margin-right: 1rem;
+            padding: 0 1rem;
+            letter-spacing: -.15rem;
+            border-radius: 0.25rem;
+            background-color: #ffffff;
+            color: #a30b0c;
+        }
+
+        #warn img {
+            margin-right: .35rem;
+            width: 3.5rem;
+            height: 3.5rem;
+        }
+        body[data-index="2"] #warn {
+            display: flex;
+        }
+
+        body[data-index="2"] #warn + div {
+            display: none;
+        }
+
+
+        /* ********* ▲ 세부 메뉴 ▲ ********* */
+
+        .text {
+            padding: 1rem;
+            font-size: 1rem;
+            background-color: #ffffff;
+            color: black;
+            border-radius: 0.15rem;
+        }
+
+        textarea {
+            visibility: hidden;
+        }
+
+        @keyframes header-spacing {
+            0% {
+                letter-spacing: .7rem;
+                opacity: 0;
+            }
+
+            45%, 100% {
+                letter-spacing: 0;
+                opacity: 1;
+            }
+        }
+
+        @keyframes highlight {
+            0% {
+                transform: translateX(-2px);
+            }
+        }
+
+        @media (orientation: portrait) {
+            #container {
+                flex-direction: column;
+            }
+
+            .container {
+                width: 100%;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+<main>
+    <div id="header">
+        <div id="warn"><strong><img src="/users/coffea/메뉴판/no-touch.jpg"> NO TOUCH</strong> 메뉴를 고르신 후, 직원에게 주문해주세요</div>
+        <div id="brand">COFFEA COFFEE</div>
+        <div id="bean"><strong><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-shop" viewBox="0 0 16 16">
+            <path d="M2.97 1.35A1 1 0 0 1 3.73 1h8.54a1 1 0 0 1 .76.35l2.609 3.044A1.5 1.5 0 0 1 16 5.37v.255a2.375 2.375 0 0 1-4.25 1.458A2.371 2.371 0 0 1 9.875 8 2.37 2.37 0 0 1 8 7.083 2.37 2.37 0 0 1 6.125 8a2.37 2.37 0 0 1-1.875-.917A2.375 2.375 0 0 1 0 5.625V5.37a1.5 1.5 0 0 1 .361-.976l2.61-3.045zm1.78 4.275a1.375 1.375 0 0 0 2.75 0 .5.5 0 0 1 1 0 1.375 1.375 0 0 0 2.75 0 .5.5 0 0 1 1 0 1.375 1.375 0 1 0 2.75 0V5.37a.5.5 0 0 0-.12-.325L12.27 2H3.73L1.12 5.045A.5.5 0 0 0 1 5.37v.255a1.375 1.375 0 0 0 2.75 0 .5.5 0 0 1 1 0zM1.5 8.5A.5.5 0 0 1 2 9v6h1v-5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v5h6V9a.5.5 0 0 1 1 0v6h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1V9a.5.5 0 0 1 .5-.5zM4 15h3v-5H4v5zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3zm3 0h-2v3h2v-3z"/>
+        </svg>원두 판매</strong><small>※필요시 용도에 따라 갈아드립니다.</small></div>
+        <div id="datetime"></div>
+    </div>
+    <div id="container">
+        <div class="container">
+            <div class="header">
+                <div class="r">Regular</div>
+                <div class="g">Gulliver</div>
+            </div>
+            <div class="panel">
+                <div class="menu" data-template="?menu">
+                    <div class="name">
+                        <strong data-set-text="data.name.ko"></strong>
+                        <span data-set-text="data.name.en"></span>
+                    </div>
+                    <div class="items" data-append-item>
+                        <div class="item" data-template="?item" data-set-sign>
+                            <div class="ko" data-set-text="data.ko"></div>
+                            <div class="en" data-set-text="data.en"></div>
+                            <div class="r" data-set-text="data.r"></div>
+                            <div class="g" data-set-text="data.g"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text" data-template="?text">
+                    <pre data-set-text="data.text"></pre>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="header">
+                <div class="r">Regular</div>
+                <div class="g">Gulliver</div>
+            </div>
+            <div class="panel"></div>
+        </div>
+    </div>
+</main>
+
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/lib/js/js-util.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+<script src="./js.js?9"></script>
+
+<script>
+
+    const
+        [$datetime] = JS.selector('datetime'),
+        panels = document.getElementsByClassName('panel'),
+        loop = (function () {
+            const loop = () => {
+                $datetime.innerHTML = JS.datetime(new Date(), 'yyyy-MM-dd(E) <strong>h:mm:ss</strong>');
+                setTimeout(loop, 1000);
+            }
+            loop();
+            return null;
+        })(),
+
+        $menu = class Menu extends JS.Template {
+            appendItem(ele, v) {
+                this.data.items.forEach(item => {
+                    new $item(item).apply().appendTo(ele);
+                })
+            }
+        },
+
+        $item = class Item extends JS.Template {
+            setSign(ele) {
+                this.data.sign && ele.classList.add(this.data.sign);
+            }
+        },
+
+        $text = class Text extends JS.Template {
+
+        };
+
+
+    APP.getJSON().then(data => {
+        if (data) {
+            const {values} = data;
+            values && values.forEach((text, i) => {
+                COFFEA.parse(text).forEach((data) => {
+                    if (data.type === 'menu') {
+                        new $menu(data).apply().appendTo(panels[i]);
+                    } else {
+                        new $text(data).apply().appendTo(panels[i]);
+                    }
+                });
+            });
+        }
+    });
+
+
+    // 노터치
+    if(APP.paths.user === 'coffea') {
+        document.body.dataset.index = APP.paths.index;
+    }
+
+</script>
+</body>
+</html>

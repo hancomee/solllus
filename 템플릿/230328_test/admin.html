@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            height: 100%;
+            background-color: #111;
+        }
+
+        #container {
+            overflow: auto;
+        }
+
+        #container.overflow-x > pre {
+            word-break: break-all;
+            white-space: pre-line;
+        }
+
+        #result, #text {
+            margin: 0;
+            padding: 2rem;
+            width: 100%;
+            height: 20rem;
+            font-weight: bolder;
+        }
+
+        #text {
+            font-size: 2rem;
+        }
+
+        #result {
+            color: #ddd;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="container" style="overflow: scroll; width: 300px; height: 150px; background-color: #ddd;">
+    <div style="width: 500px; background-color: red; height: 50px;"></div>
+</div>
+
+
+
+<script>
+
+
+    const
+
+        container = document.getElementById('container'),
+
+        swiper = (ele = document) => {
+        let x = -1,
+            handler = {
+                left() {
+                    console.log('left');
+                },
+                right() {
+                    console.log('right');
+                }
+            },
+            remove = () => document.removeEventListener('touchmove', touchmove),
+            touchmove = (e) => {
+                let move = e.changedTouches[0].screenX - x;
+                if(move > 150) {
+                    remove();
+                    handler.right();
+                }
+                if(move < -150) {
+                    remove();
+                    handler.left();
+                }
+            };
+        document.addEventListener('touchstart', (e) => {
+            x = e.changedTouches[0].screenX;
+            document.addEventListener('touchmove', touchmove);
+        });
+        document.addEventListener('touchend', remove);
+    };
+    swiper();
+
+    for(let p in container) {
+        if(/width/i.test(p)) {
+            console.log(p, container[p]);
+        }
+    }
+</script>
+</body>
+</html>

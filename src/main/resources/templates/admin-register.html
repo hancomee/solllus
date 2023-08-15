@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>사용자 계정</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="/dist/lib/css/reboot.css"/>
+
+    <style>
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #443b66;
+
+            color: white;
+        }
+
+        .user-name {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        strong {
+            font-size: 2.5rem;
+        }
+
+        .create {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .btns {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+
+        input {
+            display: block;
+            padding: 1rem;
+            gap: .5rem;
+        }
+
+        .btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            width: 12rem;
+            height: 12rem;
+            border-radius: 50%;
+            background-color: white;
+
+            color: #524878;
+            font-weight: bolder;
+            font-size: 1.35rem;
+
+            opacity: .5;
+        }
+
+        .btn[data-event] {
+            opacity: 1;
+        }
+
+        @media (min-width: 900px) {
+            .container {
+                width: 40rem;
+            }
+
+            .create {
+                flex-direction: row;
+                align-items: center;
+            }
+
+            .btns {
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="user-name"><strong></strong></div>
+
+    <div class="btns">
+        <div class="create" data-ele="create">
+            <input name="password" placeholder="password">
+            <input name="roles" placeholder="roles">
+            <div data-event="create">Create</div>
+        </div>
+        <span class="btn" data-event="restore" data-ele="restore">복원</span>
+        <span class="btn" data-event="destroy" data-ele="destroy">완전삭제</span>
+    </div>
+
+</div>
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel.js"></script>
+
+<script>
+
+
+    const [strong] = document.getElementsByTagName('strong'),
+        {create, restore, destroy} = JS.elementsMap(document.body, 'data-ele');
+
+    (function (name) {
+
+        strong.textContent = name;
+
+        JS.fetch('/data/s/user/info/' + name)
+            .then(res => res.json())
+            .then(data => {
+                const [registered, userDetail, dirExists] = data;
+
+                // 등록된 계정이면 관리자페이지로
+                if (registered) location.href = '/admin/' + name;
+
+                if (!userDetail) restore.classList.add('hide');
+                if (!dirExists) destroy.classList.add('hide');
+                if (userDetail) create.classList.add('hide');
+
+            });
+
+        JS.addEvent({
+            create({target}) {
+                let {password, roles} = JS.elementsMap(target.parentElement, 'name');
+                if (!password.value.trim()) return alert('비밀번호는 반드시 설정해야 합니다.');
+                JS.fetch('/data/s/user/register/' + name + '?pass=' + password.value.trim() + '&roles=' + roles.value)
+                    .then(() => location.reload());
+            },
+            restore() {
+                JS.fetch('/data/s/user/restore/' + name).then(() => location.reload());
+            },
+            destroy() {
+                JS.fetch('/data/s/user/destroy/' + name).then(() => location.reload());
+            }
+        });
+
+
+    })(location.pathname.split('/')[2]);
+
+
+</script>
+</body>
+</html>

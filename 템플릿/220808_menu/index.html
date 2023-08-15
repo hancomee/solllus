@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+
+
+    <link href="https://fonts.googleapis.com/css2?family=Prosto+One&family=Saira+Stencil+One&display=swap" rel="stylesheet">
+
+    <style>
+        @font-face {
+            font-family: 'ChosunGs';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ChosunGs.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .style {
+            height: 3rem;
+            background-color: #ddd;
+        }
+
+        .editor {
+            flex: 1 1 auto;
+            padding: 2rem;
+            outline: none !important;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="container">
+
+    <div class="style">
+
+    </div>
+    <div class="editor" contenteditable="true" spellcheck="false"></div>
+</div>
+
+
+
+<script>
+
+
+    document.addEventListener('mouseup', () => {
+        const selection = getSelection();
+        console.log(selection.getRangeAt(0));
+    })
+
+
+</script>
+</body>
+</html>

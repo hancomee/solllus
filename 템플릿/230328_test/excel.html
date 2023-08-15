@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>엑셀</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            padding-top: 60px;
+            margin: 0;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+
+            display: flex;
+            align-items: center;
+
+            background-color: #222;
+        }
+
+
+        table {
+            border-collapse: collapse;
+            user-select: none;
+        }
+
+        table td {
+            border: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <input type="file">
+</nav>
+<main>
+    <div id="container"></div>
+</main>
+
+
+
+
+<script src="./xlsx.full.min.js"></script>
+<!--<script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>-->
+<script src="http://hancomee.com/dist/lib/js/js-base.js"></script>
+<script>
+
+
+    const
+
+        [$container, $input] = JS.selector('container <input>'),
+        readExcel = (file) => {
+            let reader = new FileReader();
+
+            reader.onload = function () {
+                let {result} = reader,
+                    workBook = XLSX.read(result, {type: 'binary'}),
+                    [sheetName] = workBook.SheetNames,
+                    sheetData = workBook.Sheets[sheetName];
+
+                $container.innerHTML = XLSX.utils.sheet_to_html(sheetData);
+            };
+            reader.readAsBinaryString(file);
+        };
+
+    $input.addEventListener('input', () => {
+        readExcel($input.files[0])
+    });
+
+</script>
+</body>
+</html>

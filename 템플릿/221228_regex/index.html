@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <style>
+        *, ::after, *::before {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --aside-width: 400px;
+        }
+
+        body {
+            margin: 0;
+            padding: 0 0 0 var(--aside-width);
+        }
+
+        [data-event] {
+            cursor: pointer;
+        }
+
+        aside {
+            overflow-y: scroll;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            padding: 1rem;
+            width: var(--aside-width);
+
+            background-color: #ddd;
+        }
+
+        input, textarea {
+            padding: 1rem;
+            width: 100%;
+            border: 1px solid #999;
+        }
+
+        input:focus, textarea:focus {
+            outline:0;
+        }
+
+        textarea {
+            border-radius: 1rem;
+        }
+
+        .btn {
+            padding: 1rem;
+            color: white;
+            background-color: #333;
+        }
+
+        .regexp {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        .regexp > span {
+            white-space: nowrap;
+        }
+        .regexp > textarea {
+            margin-top: .5rem;
+            height: 10rem;
+        }
+
+
+        .text {
+            display: flex;
+        }
+        .text > div {
+            padding: 1rem;
+            width: 100%;
+        }
+        .text textarea {
+            padding: 1.5rem;
+            height: 90vh;
+        }
+    </style>
+</head>
+<body>
+
+
+<aside>
+    <div class="btn" data-event="add">추가</div>
+    <div class="regexp">
+        <input>
+        <textarea></textarea>
+        <span data-event="remove">삭제</span>
+    </div>
+</aside>
+
+<div class="text">
+    <div><textarea id="target"></textarea></div>
+    <div><textarea id="result"></textarea></div>
+</div>
+
+<script>
+
+
+    import {Regex} from "../../web-resources/lib/core/_regex";
+
+    const
+
+        {forEach, map} = Array.prototype,
+        selector = (str, ele = document) => {
+            return str.split(/\s+/).map(v => {
+                switch (v[0]) {
+                    case '<' :
+                        return ele.getElementsByTagName(v.slice(1, -1))[0];
+                    case '.' :
+                        return ele.getElementsByClassName(v.slice(1))[0];
+                    default :
+                        return document.getElementById(v);
+                }
+            });
+        },
+
+        addEvent = (() => {
+            const $handlers = {};
+            document.addEventListener('click', (e) => {
+                let target = e.target.closest('[data-event]'),
+                    type = target && target.getAttribute('data-event');
+                if (target && $handlers[type]) {
+                    let ele = e.target, obj = {target: target}, val;
+                    do {
+                        for (let p in ele.dataset) {
+                            val = ele.dataset[p];
+                            if (obj[p] == null)
+                                obj[p] = /^[-+]?\d+$/.test(val) ? parseInt(val) : val;
+                        }
+                    } while (ele = ele.parentElement);
+                    $handlers[type](obj);
+                }
+            });
+            return (handlers) => {
+                console.log(handlers)
+                for (let p in handlers) $handlers[p] = handlers[p];
+            }
+        })(),
+
+        [aside, target, result] = selector('<aside> target result'),
+
+        __handler = () => {
+            let source = target.value;
+            if(source) {
+                forEach.call(aside.getElementsByTagName('input'), (input) => {
+                    try {
+                        const regex = new Regex(input.value),
+                            replace = input.nextElementSibling.value;
+                    } catch (e) {
+
+                    }
+                });
+            }
+        };
+
+
+    addEvent({
+       add() {
+           const div = document.createElement('div');
+           div.className = 'regexp';
+           div.innerHTML = '<input><textarea></textarea><span data-event="remove">삭제</span>';
+           aside.appendChild(div);
+       },
+        remove({target}) {
+            aside.removeChild(target.closest('.regexp'));
+        }
+    });
+
+    aside.addEventListener('keyup', () => {
+
+    });
+
+</script>
+
+</body>
+</html>

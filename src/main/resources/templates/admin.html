@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin</title>
+
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="/dist/lib/css/reboot.css"/>
+    <link rel="stylesheet" href="/dist/admin.css"/>
+
+    <style id="style"></style>
+
+</head>
+
+<body class="supreme" data-template="body">
+
+<nav>
+
+    <a href="/admin" class="brand">
+        <i>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-fill" viewBox="0 0 16 16">
+                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3Zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+            </svg>
+        </i>
+        <span id="brand"></span>
+    </a>
+
+    <div class="ms-auto nav-btns">
+        <a id="admin" data-view="supreme" target="_blank">Explorer</a>
+        <a href="/dashboard" target="_blank" data-view="supreme">Dash</a>
+        <span data-view="supreme" data-event="supremeMenu">ADMIN</span>
+        <a href="/logout" target="_parent">로그아웃</a>
+    </div>
+</nav>
+
+<div class="supreme-panel">
+    <div>
+        <span class="btn delete-user" data-event="removeUser">사용자 삭제</span>
+    </div>
+    <div>
+        <input name="index" placeholder="디스플레이 번호">
+        <span class="btn" data-event="addDisplay">디스플레이 추가</span>
+    </div>
+    <div>
+        <input name="pass" placeholder="password">
+        <input name="role" placeholder="roles">
+        <span class="btn" data-event="modifyUser">저장</span>
+    </div>
+    <div>
+        <span class="btn" data-event="mediaUpload">파일 업로드</span>
+        <span class="btn ms-auto" data-event="supremeMenu">Close</span>
+    </div>
+</div>
+
+
+<div class="display-container">
+    <div class="display-row" data-template="?display">
+        <div class="display content-container"
+             data-set-attrs="index:data.index; root:data.content.root; path:data.content.path;
+             name:data.content.name; mediaType:data.content.mediaType">
+            <div class="content-header">
+                <a target="_blank" data-anchor></a>
+                <span class="ms-auto" data-event="reload">Reload</span>
+                <span data-view="supreme" data-event="removeDisplay">×</span>
+            </div>
+            <div class="content-body" data-event="open_display">
+                <div data-thumb></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="manager">
+
+    <div class="manager-body container-fluid">
+
+        <!-- 컨텐츠 -->
+        <div class="content" data-event="select_content"
+             data-set-attrs="root:data.root; path:data.path; name:data.name; mediaType:data.mediaType"
+             data-template="?content">
+            <div class="content-container">
+                <div class="content-header">
+                    <b class="media-type" data-set-content-type></b>
+                </div>
+                <div class="content-body">
+                    <div class="media-float" data-content></div>
+                </div>
+                <div class="content-supreme" data-view="supreme">
+                    <div data-approval-view="0" data-event="addContent">★</div>
+                    <div data-approval-view="1" data-event="removeContent">★</div>
+                    <div class="del-media" data-view="supreme" data-event="deleteContent">×</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 텍스트 -->
+    <div class="manager-footer">
+        <div class="content-text">
+            <input class="" id="text-input" spellcheck="false" autocomplete="off">
+            <span data-event="text"><b data-event="text_reset">×</b>Send</span>
+        </div>
+    </div>
+
+    <div class="manager-notice">
+        <div class="text-center">
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-double-up" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M7.646 2.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 3.707 2.354 9.354a.5.5 0 1 1-.708-.708l6-6z"/>
+                    <path fill-rule="evenodd" d="M7.646 6.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 7.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z"/>
+                </svg>
+            </div>
+            <div><strong>디스플레이를 선택해주세요</strong></div>
+            <div>좌우 스크롤</div>
+        </div>
+    </div>
+</div>
+
+
+<div id="pop-up">Please Wait....</div>
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel.js"></script>
+
+<script>
+
+    (function () {
+
+        function $run($username, $root = 'users', $displayMap) {
+
+            document.getElementById('brand').textContent = $username;
+
+            const
+
+                {body} = document,
+                [$supremePanel, $style, $manager, $contentRow, $displayRow, $textInput, $managerBody, popUp] =
+                    JS.selector('.supreme-panel style .manager .content-row .display-container text-input .manager-body pop-up'),
+
+                Body = new class Body extends JS.Template {
+
+
+                    constructor() {
+                        super();
+                    }
+
+                    contentKey(data) {
+                        return data ? [data.root, data.path, data.name].join('/') : '';
+                    }
+
+                    media($content, displayIndex) {
+                        const {hasAdmin, mediaType, name, meta} = $content;
+                        if (/image/i.test(mediaType)) {
+                            return JS.replace('<img src="/{root}/{path}/{name}">', $content);
+                        } else if (/mp4/i.test(mediaType)) {
+                            return JS.replace('<video preload="metadata"><source src="/{root}/{path}/{name}" type="video/mp4"></video>', $content);
+                        }
+                        // app
+                        else if (/html/i.test(mediaType)) {
+                            const array = ['<b>' + (meta.split(/\n/)[0].trim() || name) + '</b>'];
+                            if (hasAdmin) {
+                                let href = '/' + ['app', $content.root, $content.path, $content.name].join('/') +
+                                    '?name=' + $username + '&index=' + displayIndex;
+                                array[1] = JS.replace('<a class="app-admin" href="{0}" target="_self">설정</a>', [href]);
+                            }
+                            return '<div class="app-thumb">' + array.join('') + '</div>';
+                        }
+                    }
+
+                    getDisplay() {
+                        const ele = document.querySelector('.display[data-index="' + body.dataset.display + '"]');
+                        return ele ? JS.Template.$get(ele) : null;
+                    }
+
+                    // 선택된 컨텐츠 체크
+                    checkContent() {
+                        const $display = this.getDisplay();
+                        if ($display) {
+                            const {root, path, name} = $display.data,
+                                key = [root, path, name].join('/');
+                            forEach.call(document.getElementsByClassName('content'), (ele) => {
+                                const chk = key === [ele.dataset.root, ele.dataset.path, ele.dataset.name].join('/');
+                                if (chk) ele.classList.add('active');
+                                else ele.classList.remove('active');
+                            })
+                        }
+                    }
+
+                    // 열려진 디스플레이 체크
+                    checkDisplay() {
+                        forEach.call(document.getElementsByClassName('display'), (ele) => {
+                            if (ele.dataset.index === body.dataset.display) ele.classList.add('active');
+                            else ele.classList.remove('active');
+                        });
+                        this.checkContent();
+                    }
+
+
+                    show_displays() {
+                        return ADMIN.getDisplays($username).then(values => {
+                            $displayMap = {};
+                            $displayRow.textContent = '';
+                            if (values) {
+                                for (let p in values) {
+                                    $displayMap[p] = new Display().setData(values[p]).apply().appendTo();
+                                }
+                                this.checkDisplay();
+                            }
+                        });
+                    }
+
+
+                    // 디스플레이 클릭
+                    open_display({index}) {
+
+                        // 앱 목록들을 가지고 온다.
+                        JS.fetch('/data/user/display/contents/' + $username + '?index=' + index)
+                            .then(res => res.json())
+                            .then((data) => {
+                                $managerBody.textContent = '';
+                                const [apps, userApps, registered] = data,
+                                    handler = app => new Content(app).setApproval(registered.indexOf(this.contentKey(app)) !== -1).apply().appendTo();
+
+                                apps.forEach(handler);
+                                userApps.forEach(handler);
+
+                                JS.toggleClass($manager, 'active', true);
+                                body.dataset.display = index;
+                                $textInput.value = $displayMap[index].data.text;
+                                this.checkDisplay();
+                            })
+                    }
+
+
+                    select_content({display, root, path, name, approval}) {
+                        if (!approval) return;
+                        ADMIN.updateDisplay({index: display, root: root, path: path, name: name, user: $username, command: 1})
+                            .then(() => this.show_displays())
+                            .then(() => this.open_display({index: display}));
+                    }
+
+                    reload({$template}) {
+                        ADMIN.reloadDisplay({index: $template.data.index, user: $username})
+                    }
+
+
+                    // 관리자 패널
+                    supremeMenu({target}) {
+                        if (!$supremePanel.classList.contains('open')) {
+                            JS.fetch('/data/s/user/' + document.body.getAttribute('data-user'))
+                                .then(res => res.json())
+                                .then(userDetail => {
+                                    const {authorities, password} = userDetail,
+                                        {pass, role, index} = JS.elementsMap($supremePanel, 'name'),
+                                        roles = authorities.map(({authority}) => authority).join(',');
+
+                                    pass.value = password;
+                                    role.value = roles;
+                                    index.value = '';
+
+                                    $supremePanel.classList.add('open');
+                                })
+
+                        } else $supremePanel.classList.remove('open');
+                    }
+
+                    modifyUser({target}) {
+                        const {pass, role} = JS.elementsMap(target.parentElement, 'name');
+                        JS.fetch('/data/s/user/register/' + $username + '?pass=' + pass.value.trim() + '&roles=' + role.value);
+                    }
+
+                    removeUser({}) {
+                        if (confirm($username + ' 계정을 삭제하시겠습니까?')) {
+                            JS.fetch('/data/s/user/remove/' + $username)
+                                .then(res => res.json())
+                                .then(success => success && location.reload())
+                        }
+                    }
+
+                    addDisplay({target}) {
+                        const
+                            input = target.previousElementSibling,
+                            index = input.value.trim();
+                        JS.fetch('/data/s/display/create/' + [$username, index].join('/'))
+                            .then(res => res.json())
+                            .then(flag => {
+                                if (flag === 1) {
+                                    input.value = '';
+                                    this.show_displays();
+                                }
+                            })
+                    }
+
+                    removeDisplay({index}) {
+                        if (confirm('디스플레이 "' + index + '"가 삭제됩니다?')) {
+                            JS.fetch('/data/s/display/remove/' + [$username, index].join('/'))
+                                .then(() => {
+                                    this.show_displays();
+                                    // 현재 열려있으면
+                                    if (body.dataset.display == index) {
+                                        $managerBody.textContent = '';
+                                        $manager.classList.remove('active')
+                                    }
+                                    this.show_displays();
+                                    alert('삭제되었습니다.');
+                                })
+                                .then(() => ADMIN.reloadDisplay({index: index, user: $username}))
+                        }
+                    }
+
+                    addContent({display, root, path, name}) {
+                        JS.fetch('POST:/data/s/app/install', {user: $username, index: display, root: root, path: path, name: name})
+                            .then(res => res.ok)
+                            .then(() => this.open_display({index: display}));
+                    }
+
+                    removeContent({root, path, name, display}) {
+                        if (confirm(path + '/' + name + '을 등록해제?')) {
+                            JS.fetch('POST:/data/s/app/uninstall', {user: $username, index: display, root: root, path: path, name: name})
+                                .then(res => res.ok)
+                                .then(() => ADMIN.reloadByContent({user: $username, root: root, path: path, name: name}))
+                                .then(() => {
+                                    this.show_displays();
+                                    this.open_display({index: display});
+                                })
+                        }
+                    }
+
+
+                    deleteContent({root, path, name}) {
+                        if (confirm(path + '/' + name + '을 삭제하시겠습니까?')) {
+                            const config = {user: $username, root: root, path: path, name: name};
+                            JS.fetch('POST:/data/user/io/files/delete/' + $username, {paths: [root, path, name]})
+                                .then(res => res.ok)
+                                .then(() => ADMIN.updateContent(config))
+                                .then(() => ADMIN.reloadByContent(config))
+                                .then(() => {
+                                    this.show_displays();
+                                    body.dataset.display && this.open_display({index: body.dataset.display});
+                                })
+                        }
+                    }
+
+                    mediaUpload() {
+                        JS.inputFile({
+                            accept: ([file]) => {
+                                if (/matroska|mp4|^image/i.test(file.type)) {
+                                    popUp.classList.add('active');
+                                    const data = new FormData(),
+                                        {name} = file,
+                                        filename = new Date().getTime() + name.slice(name.lastIndexOf('.')),
+                                        config = {user: $username, root: 'users', path: $username, name: filename};
+
+                                    data.append('config', JS.bodyBlob({paths: [config.root, config.path]}))
+                                    data.append('files', file, filename);
+
+                                    JS.fetch('PUT:/data/user/io/files/' + $username, data)
+                                        .then(() => ADMIN.updateContent(config))
+                                        .then(() => {
+                                            // 열려진 디스플레이가 있으면 컨텐츠 목록 갱신
+                                            body.dataset.display && this.open_display({index: body.dataset.display});
+                                        })
+                                        .then(() => popUp.classList.remove('active'));
+                                }
+                            }
+                        })
+                    }
+
+                    text({target, display}) {
+                        let input = target.closest('.content-text').getElementsByTagName('input')[0];
+                        ADMIN.updateDisplay({index: display, user: $username, body: input.value, command: 0});
+                    }
+
+                    text_reset({target, display}) {
+                        let input = target.closest('.content-text').getElementsByTagName('input')[0];
+                        ADMIN.updateDisplay({index: display, user: $username, body: '', command: 0}).then(() => input.value = '');
+                    }
+
+                },
+
+
+                Display = class extends JS.Template {
+
+                    active(flag) {
+                        flag ? this.element.classList.add('active') : this.element.classList.remove('active');
+                    }
+
+                    thumb(target, value, data = this.data) {
+                        if (data) {
+                            const {content} = data;
+                            if (content) {
+                                const key = Body.contentKey(content);
+                                if (/html/.test(content.mediaType) || target.getAttribute('data-key') !== key) {
+                                    target.setAttribute('data-key', key);
+                                    target.innerHTML = Body.media(content, this.data.index);
+                                }
+                            } else {
+                                target.textContent = '';
+                            }
+                        }
+                    }
+
+                    anchor(target, value, data = this.data) {
+                        target.href = '/v/' + $username + '/' + data.index;
+                        target.textContent = 'Display ' + data.index;
+                    }
+
+                },
+
+                Content = class extends JS.Template {
+
+                    key
+
+                    setData(data) {
+                        super.setData(data);
+                        const {element} = this;
+                        element.dataset.key = this.key = Body.contentKey(data);
+                        return this;
+                    }
+
+                    equals(data) {
+                        return Body.contentKey(data) === Body.contentKey(this.data);
+                    }
+
+                    active(flag) {
+                        flag ? this.element.classList.add('active') : this.element.classList.remove('active');
+                    }
+
+                    setApproval(flag) {
+                        this.element.setAttribute('data-approval', flag ? '1' : '0');
+                        return this;
+                    }
+
+                    setContentType(target) {
+                        const {path, mediaType} = this.data;
+                        if(/html/.test(mediaType)) target.textContent = path;
+                        else target.textContent = mediaType.split('/')[0];
+                    }
+
+                    content(target) {
+                        const {type} = target.dataset;
+                        if (!/^image|^video/i.test(type)) target.innerHTML = Body.media(this.data);
+                        target.dataset.type = this.data.mediaType;
+                    }
+                };
+
+            JS.addEvent(Body);
+
+            popUp.classList.add('active');
+            Body.show_displays().then(() => popUp.classList.remove('active'));
+
+        }
+
+        // start ====>
+        (function (suffixName) {
+
+            ADMIN.getId().then(async ([id, roles]) => {
+
+                id = suffixName || id;
+
+                // 관리자 접속
+                if (roles.indexOf('ADMIN') !== -1) {
+
+                    let noExists = true;
+
+                    // 다른 계정 컨트롤하는 경우
+                    if (suffixName) {
+                        noExists = await JS.fetch('/data/i/has/' + suffixName).then(res => res.json());
+                        noExists || (location.href = '/admin-register/' + suffixName);
+                    }
+
+                    $run(id);
+
+                    document.body.classList.remove('supreme');
+                    JS.fetch('/data/i/root').then(res => res.text()).then(root => {
+                        const a = document.createElement('a'),
+                            admin = document.getElementById('admin'),
+                            [nav] = document.getElementsByTagName('nav');
+
+                        admin.href = '/explorer?root=' + root;
+                        a.target = '_black';
+                        a.href = '/explorer?root=' + root + '/users/' + id + '&matched=' + root;
+                        nav.addEventListener('dblclick', (e) => e.target === nav && a.click());
+                        document.title = '@' + id + ' - ADMIN';
+                    });
+
+                }
+                // 일반 사용자
+                else {
+                    $run(id);
+                }
+
+                document.body.setAttribute('data-user', id);
+            });
+
+        })(location.pathname.slice(1).split(/\//)[1])
+
+
+    })();
+
+
+</script>
+</body>
+</html>

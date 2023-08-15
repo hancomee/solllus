@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+
+    <link href="/dist/fonts/SpoqaHanSansNeo.css" rel="stylesheet" type="text/css">
+    <link href="/dist/lib/css/reboot.css" rel="stylesheet" type="text/css">
+    <link href="/dist/src/app-admin.css" rel="stylesheet" type="text/css">
+
+    <style>
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            padding: 50px 1rem 1rem;
+            font-family: 'Spoqa Han Sans Neo';
+            background-color: #555;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 50px;
+            background-color: #222;
+
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+        }
+
+        #container {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .column {
+            flex: 1 1 auto;
+            padding: 1rem 1rem;
+            width: 100%;
+
+
+            color: #b2bd12;
+            font-weight: bolder;
+        }
+
+        textarea {
+            padding: 1.25rem;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            border-radius: 1rem;
+
+            font-size: .9rem;
+            line-height: 1.5;
+        }
+
+        textarea:focus {
+            border: 0;
+            outline: 0;
+        }
+
+        @media (min-width: 1000px) {
+
+            #container {
+                flex-direction: row;
+            }
+
+            .column {
+                width: 50%;
+            }
+
+            textarea {
+                padding: 2rem;
+                font-size: 2rem;
+                line-height: 1.5;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/admin">ADMIN</a>
+    <span class="ms-auto" id="save">Save</span>
+</nav>
+
+<div id="container">
+    <div class="column">
+        <textarea spellcheck="false"></textarea>
+    </div>
+    <div class="column">
+        <textarea spellcheck="false"></textarea>
+    </div>
+</div>
+
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+
+<script>
+
+    const
+
+        {body} = document,
+        textareas = document.getElementsByTagName('textarea'),
+        btn = document.getElementById('save');
+
+    btn.addEventListener('click', () => {
+        let data = map.call(textareas, (t) => t.value.trim());
+        data[2] = {date: new Date().getTime()}
+
+        body.dataset.alert = '저장중...';
+        APP.setJSON(data)
+            .then(() => APP.postMessage())
+            .then(() => JS.delay(200))
+            .then(() => body.removeAttribute('data-alert'));
+    });
+
+
+    APP.getJSON().then(values => {
+        values && forEach.call(values, (val, i) => textareas[i] && (textareas[i].value = val));
+    })
+
+</script>
+
+</body>
+</html>

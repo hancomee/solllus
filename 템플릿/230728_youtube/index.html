@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <style>
+        html, body, iframe {
+            overflow: hidden;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        iframe {
+            overflow: hidden;
+            border: 0;
+        }
+
+
+    </style>
+</head>
+<body>
+
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+<script>
+
+    const {index} = APP.paths;
+
+    APP.getJSON().then(data => {
+        if (data) {
+            const {value} = data;
+            if (value) {
+                document.body.innerHTML = '<iframe scrolling="no" src="/dist/viewer/youtube.html?v=' + value.v + '"></iframe>';
+            }
+        }
+    });
+
+
+</script>
+
+</body>
+</html>

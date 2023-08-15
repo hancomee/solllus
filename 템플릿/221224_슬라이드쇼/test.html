@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div></div>
+
+<script>
+
+    const
+
+        Local = {
+            crawling: {
+                get(config) {
+                    let script = document.getElementById('jsonp');
+                    if (script) document.head.removeChild(script);
+                    script = document.createElement('script');
+                    script.src = 'http://115.23.187.44:9984/crawling/get?config=' + encodeURIComponent(JSON.stringify(config));
+                    document.head.appendChild(script);
+                },
+                result(jsonstring) {
+                    const data = JSON.parse(/\((.*)\)/.exec(jsonstring)[1])
+                    console.log(data);
+                }
+            }
+        };
+
+
+    Local.crawling.get({
+        url: 'https://m.search.naver.com/p/csearch/content/qapirender.nhn?where=nexearch&key=CalendarAnniversary&pkid=134&q=202305%EC%9B%94&_callback=window.__jindo2_callback._directsearch_calendar_famous_month_0'
+    })
+
+
+</script>
+
+</body>
+</html>

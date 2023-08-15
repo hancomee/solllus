@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link href="/dist/fonts/SpoqaHanSansNeo.css" rel="stylesheet" type="text/css">
+    <link href="/dist/lib/css/reboot.css" rel="stylesheet" type="text/css">
+    <link href="/dist/src/app-admin.css" rel="stylesheet" type="text/css">
+
+    <style>
+
+        .container {
+            padding: 1rem;
+        }
+
+        .item {
+            overflow: hidden;
+            height: 6rem;
+            background-color: white;
+            border-radius: .3rem;
+            border: 1px solid #959595;
+        }
+
+        .item + .item {
+            margin-top: 1rem;
+        }
+
+        .item-panel {
+            display: flex;
+            height: 100%;
+        }
+
+        .thumb {
+            width: 7rem;
+            background-color: #555;
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+
+        .input {
+            flex: 1 1 auto;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+        }
+
+        input {
+            width: 100%;
+            height: 2.5rem;
+            padding: 0 0.5rem;
+            color: #777;
+            border: 0;
+            border-bottom: 1px solid #cdcdcd;
+        }
+
+        .sort {
+            display: flex;
+            flex-direction: column;
+            width: 3rem;
+            background-color: #ebebeb;
+        }
+
+        .sort > div {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 50%;
+            border-top: 1px solid white;
+        }
+
+        @media (min-width: 1280px) {
+            .container {
+                margin: 0 auto;
+                width: 560px;
+            }
+        }
+
+    </style>
+</head>
+<body class="fixed-nav-gray">
+
+<nav>
+    <a href="/admin" target="_parent"><strong>판매순위</strong></a>
+    <div class="nav-buttons ms-auto">
+        <span data-event="save">Save</span>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="item" data-template="?item" data-index="1">
+        <div class="item-panel">
+            <div class="thumb" data-event="thumb"></div>
+            <div class="input">
+                <input placeholder="제품명을 적어주세요">
+            </div>
+            <div class="sort">
+                <div data-event="sort" data-value="0">▲</div>
+                <div data-event="sort" data-value="1">▼</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/lib/js/js-util.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+<script>
+
+    const
+        Item = class extends JS.Template {
+
+            file
+            $thumb
+            $input
+
+            constructor(data) {
+                super(data);
+                this.$thumb = this.element.getElementsByClassName('thumb')[0];
+                this.$input = this.element.getElementsByTagName('input')[0];
+            }
+
+            setData(data) {
+                'img name count'.split(' ').forEach(p => this.data[p] = data[p]);
+                const {img, name, count} = this.data;
+                this.data.name = this.$input.value = name || '';
+                if(img) this.$thumb.style.backgroundImage = 'url("' + APP.src(img) + '")';
+                return this;
+            }
+
+            thumb(src, file) {
+                this.$thumb.style.backgroundImage = 'url("' + src + '")';
+                this.file = file;
+                return this;
+            }
+
+            setCount(count) {
+                this.data.count = count;
+                return this;
+            }
+
+            setImg(src) {
+                this.data.img = src;
+                this.file = null;
+                return this;
+            }
+
+            toJSON() {
+                this.data.name = this.$input.value.trim();
+                return this.data;
+            }
+        },
+        items = [{}, {}, {}, {}, {}].map(data => new Item(data).apply().appendTo()),
+
+        events = {
+
+            // 이미지
+            thumb({$item}) {
+                JS.inputFile({
+                    multiple: false,
+                    accept([file]) {
+                        if (/image/.test(file.type)) {
+                            const reader = new FileReader();
+                            reader.onload = () => $item.thumb(reader.result, file);
+                            reader.readAsDataURL(file);
+                        }
+                    }
+                })
+            },
+            sort({$item, value}) {
+                const {element} = $item,
+                    parent = element.parentElement,
+                    prev = element.previousElementSibling, next = element.nextElementSibling;
+                if (value) {
+                    next && parent.insertBefore(next, element);
+                } else {
+                    prev && parent.insertBefore(element, prev);
+                }
+            },
+
+            save() {
+                const items = map.call(document.getElementsByClassName('item'),
+                    (ele, i) => JS.Template.$get(ele).setCount(10 - i));
+
+                // 파일 업로드
+                Promise.all(items.map((item, i) => {
+                    if (!item.file) return item;
+                    let filename = new Date().getTime() + '_' + i + '.jpg';
+                    return APP.uploadFiles([{file: item.file, filename: filename}])
+                        .then(() => item.setImg(filename))
+                }))
+                    .then(() => APP.removeTemps(items.map(item => item.data.img || '')))
+                    .then(() => APP.setJSON({values: items.map(item => item.toJSON())}))
+                    .then(APP.reloadByContent)
+            }
+        };
+
+
+    JS.addEvent(events);
+
+    APP.getJSON().then(data => {
+        if(data) {
+            data.values.forEach((value, i) => items[i].setData(value));
+        }
+    });
+
+
+</script>
+</body>
+</html>

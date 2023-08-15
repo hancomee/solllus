@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <style>
+
+        input {
+            display: block;
+            padding: 2rem;
+            font-size: 2rem;
+            width: 25rem;
+        }
+
+        textarea {
+            padding: 2rem;
+            width: 100%;
+            height: 25vh;
+        }
+
+    </style>
+</head>
+<body>
+
+<input>
+<textarea></textarea>
+쿠키
+<textarea></textarea>
+<script>
+
+    const cookie = {
+        get(name) {
+            let _cookieArray = document.cookie.split(';'),
+                _result = null;
+            _cookieArray.forEach(function (item) {
+                let _cond = item.match(name + '=');
+                if (_cond && _cond !== -1) _result = item.replace(name + '=', '').replace(/^\s/, '');
+            });
+
+            return _result;
+        },
+        set(name, value, expire) {
+            let _str,
+                _expire = new Date(new Date().getTime() + expire);
+
+            _str = name + "=" + encodeURI(value);
+            _str += "; expires=" + _expire.toGMTString();
+            _str += "; path=/;";
+            document.cookie = _str;
+        }
+    }
+
+    const input = document.getElementsByTagName('input')[0],
+        textarea = document.getElementsByTagName('textarea')[0],
+        cookieTextarea = document.getElementsByTagName('textarea')[1],
+        read = () => {
+            textarea.value = localStorage.getItem('test')
+            cookieTextarea.value = cookie.get('test');
+        };
+
+    input.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') {
+            const {value} = input;
+            localStorage.setItem('test', input.value);
+            cookie.set('test', input.value, 60 * 60);
+            read();
+        }
+    });
+
+    read();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+    <link href="/dist/admin-app.css" rel="stylesheet" type="text/css">
+
+    <style>
+
+        .header {
+            padding: 1rem;
+            background-color: #959595;
+            border-bottom: 1px solid #6a6a6a;
+        }
+
+        input {
+            padding: 1rem;
+        }
+
+        input {
+            display: block;
+            margin: 0 auto;
+            width: 90%;
+            font-weight: bolder;
+            text-align: center;
+            background-color: #f1f1f1;
+            border: 1px solid #8f8f8f;
+        }
+
+        input:focus {
+            background-color: white;
+        }
+
+        #brand {
+            color: #555;
+        }
+
+        #num {
+            margin-top: 1.5rem;
+            border: 8px solid #6a6a6a;
+            font-size: 2rem;
+            color: #555;
+        }
+
+
+        #result {
+            display: flex;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        #result > div {
+            padding: 1rem;
+            width: 100%;
+        }
+
+        .item {
+            display: flex;
+            background-color: white;
+            border: 1px solid #999;
+            text-align: center;
+        }
+
+        .text {
+            flex: 1 1 auto;
+            font-size: 2rem;
+        }
+
+        .delete {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+
+            background-color: #c91313;
+            font-weight: bolder;
+            color: white;
+            cursor: pointer;
+        }
+
+
+        @media (min-width: 1000px) {
+            input {
+                width: 30%;
+            }
+
+            #result > div {
+                width: 20%;
+            }
+
+        }
+
+    </style>
+
+</head>
+<body class="fixed-nav-gray">
+
+<nav>
+    <a href="/admin" target="_parent"><strong>ADMIN </strong></a>
+    <span style="margin-left: auto">※인풋창 기입 후 「Enter」키를 누르세요.</span>
+</nav>
+
+<main>
+
+    <div class="header">
+        <div>
+            <input id="brand" spellcheck="false" autocomplete="off">
+        </div>
+        <div>
+            <input id="num" spellcheck="false" autocomplete="off">
+        </div>
+    </div>
+
+    <div id="result">
+        <script type="text/html" data-template-html="item">
+            <div data-text="{text}">
+                <div class="item">
+                    <strong class="text">{text}</strong>
+                    <span class="delete" data-event="delete">Remove</span>
+                </div>
+            </div>
+        </script>
+    </div>
+</main>
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+<script>
+
+
+    function init(data) {
+        data = data || {brand: '', values: []}
+
+        const
+            [$brand, input] = document.getElementsByTagName('input'),
+            result = document.getElementById('result'),
+            handler = () => {
+                const {brand, values} = data;
+                $brand.value = brand;
+                input.value = '';
+                result.innerHTML = JS.templateHTML('item', values);
+            },
+            indexOf = (text) => {
+                const {values} = data;
+                for (let i = 0, l = values.length; i < l; i++) {
+                    if (values[i].text === text) return i;
+                }
+                return -1;
+            },
+            remove = (text) => {
+                const i = indexOf(text);
+                if (i !== -1) data.values.splice(i, 1);
+            },
+            update = () => {
+                APP.setJSON(data)
+                    .then(() => APP.postMessage())
+            };
+
+
+        input.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter' && input.value) {
+                const index = indexOf(input.value);
+                if (index === -1)
+                    data.values.push({text: input.value, datetime: new Date().getTime()});
+                else
+                    data.values.splice(index, 1);
+                handler();
+                update();
+            }
+        });
+
+        $brand.addEventListener('change', (e) => {
+            data.brand = $brand.value;
+            update();
+        })
+
+        handler();
+        input.focus();
+
+        JS.addEvent({
+            delete({text}) {
+                remove(text.toString());
+                handler();
+                update();
+            }
+        });
+
+    }
+
+    APP.getJSON().then(init);
+
+</script>
+</body>
+</html>

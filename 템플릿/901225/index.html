@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <style>
+
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ccc;
+        }
+
+        iframe {
+
+            overflow: hidden;
+            width: 50%;
+            height: 50%;
+            border: 0;
+
+            background-color: #333;
+
+        }
+
+    </style>
+
+    <style id="style"></style>
+
+</head>
+<body tabindex="-1">
+
+
+
+
+<script>
+
+    document.addEventListener('click', () => {
+         document.body.innerHTML = '<iframe id="iframe" src="./iframe.html" scrolling="off"></iframe>';
+    });
+    document.addEventListener('keyup', (e) => {
+        console.log('parent', e.key)
+    })
+
+
+    document.body.focus();
+</script>
+</body>
+</html>

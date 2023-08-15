@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <!--<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">-->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+
+    <style>
+
+        :root {
+            --footer-height: 6rem;
+        }
+
+        *, ::before, ::after {
+            box-sizing: border-box;
+        }
+
+        html, body, #container {
+            margin: 0;
+            height: 100%;
+            cursor: none;
+        }
+
+        body {
+            font-family: 'Spoqa Han Sans Neo';
+            background-color: black;
+        }
+
+        #container, #body, #footer {
+            position: relative;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /*#container[data-config-led]:after {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            content: '';
+            background-color: #fff040;
+            box-shadow: 0 0 5px black, 0 0 2px black;
+            z-index: 1;
+        }*/
+
+        #body {
+            overflow: hidden;
+            flex: 1 1 auto;
+            height: 100%;
+        }
+
+        #footer {
+            display: none;
+            line-height: 1;
+            background-color: #000;
+        }
+
+        #text {
+            padding: 1rem 0;
+            font-size: 1.85rem;
+            font-weight: bolder;
+            text-align: center;
+            color: #ddd;
+        }
+
+        #text > div {
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+
+            border: 0 !important;
+            outline: 0 !important;
+        }
+
+        body.footer #footer {
+            display: block;
+        }
+
+
+        #awake {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            width: 1px;
+            height: 1px;
+            opacity: .1;
+            background-color: white;
+            animation: motion2 0.1s linear 0s infinite alternate;
+            z-index: 9999;
+        }
+
+        .ms-auto {
+            margin-left: auto;
+        }
+
+        .ms-1 {
+            margin-left: .75rem;
+        }
+
+
+        /* ***************** ▼  연결 끊겼을때  ▼ ***************** */
+        body.error .disconnected {
+            display: flex !important;
+        }
+
+        .disconnected {
+            display: none;
+            position: fixed;
+            align-items: center;
+            justify-content: center;
+
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 2.5rem;
+            background-color: black;
+            opacity: .7;
+            font-size: .85rem;
+            color: white;
+        }
+
+
+        #connect-led {
+            display: inline-block;
+            margin-left: 0.7rem;
+            width: 0.5rem;
+            height: 0.5rem;
+
+            background-color: white;
+            border-radius: 50%;
+            transition: 1s ease background-color;
+        }
+
+        #connect-led.on {
+            background-color: red;
+        }
+
+        #try-count {
+            font-size: .75rem;
+            color: #999;
+        }
+
+        /* ***************** ▲  연결 끊겼을때  ▲ ***************** */
+
+
+        #log {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            padding: .5rem;
+            color: #666;
+            font-size: .85rem;
+            background-color: white;
+            opacity: .6;
+            z-index: 9999;
+        }
+
+        #log:empty {
+            display: none !important;
+        }
+
+
+        @keyframes motion {
+            0% {
+                bottom: 125%;
+            }
+            100% {
+                bottom: 115%;
+            }
+        }
+
+        @keyframes motion2 {
+            0% {
+                width: 1px;
+            }
+            100% {
+                width: 2px;
+            }
+        }
+
+        @media (min-width: 1000px) {
+
+            #text {
+                padding: 2rem 0;
+                font-size: 4rem;
+            }
+        }
+
+    </style>
+    <style id="style"></style>
+</head>
+<body>
+
+<div id="container">
+    <div id="body"></div>
+    <div id="footer">
+        <div id="text"></div>
+    </div>
+</div>
+
+<div class="disconnected">
+    <i id="connect-led"></i>
+    <span class="ms-1">서버와 연결중입니다</span>
+    <span class="ms-1" id="disconnected-time"></span>
+    <span class="ms-1" id="try-count"></span>
+</div>
+
+<div id="log"></div>
+<div id="awake"></div>
+
+<script>
+
+
+    const
+        $run = ($user, $index, $certify) => {
+            let $contentTime,
+                $displayText,
+                $serverTime,
+                $source;
+
+            const
+                {forEach} = Array.prototype,
+
+                {body} = document,
+                $container = document.getElementById('container'),
+                $body = document.getElementById('body'),
+                $footer = document.getElementById('footer'),
+                $text = document.getElementById('text'),
+                $style = document.getElementById('style'),
+                $log = document.getElementById('log'),
+
+                _replace = (html, obj) => html.replace(/\{([^}]+)\}/g, (g, p) => obj[p]),
+                __src = (content) => ['', content.root, content.path, encodeURI(content.name)].join('/'),
+
+                _datetime = (function () {
+                    const _ = (a) => ('00' + a).slice(-2),
+                        $days = '일월화수목금토일';
+                    return (value) => {
+                        const year = value.getFullYear(),
+                            month = _(value.getMonth() + 1),
+                            date = _(value.getDate()),
+                            day = $days[value.getDay()],
+                            hours = value.getHours(),
+                            hh = hours >= 12 ? 'pm' : 'am',
+                            hour = hours % 12 ? hours % 12 : 12,
+                            minutes = _(value.getMinutes()),
+                            seconds = _(value.getSeconds());
+                        //       0      1      2    3     4    5    6       7        8
+                        return [year, month, date, day, hours, hh, hour, minutes, seconds];
+                    }
+
+                })(),
+
+                _rotate = (value = 0) => {
+
+                    $style.innerText = '';
+
+                    if (value === 180) {
+                        $style.innerText = '#container { transform: rotate(180deg); }';
+                    } else if (value === 90 || value === 270) {
+                        const W = window.innerWidth, H = window.innerHeight,
+                            w = Math.abs(W / 2), h = Math.abs(H / 2),
+                            _replace = (str, array) => str.replace(/<([^>]+)>/g, (_, i) => array[i]);
+
+                        $style.innerText = _replace('#container { transform: rotate(<r>deg); top: <t>px; left: <l>px; width: <w>px; height: <h>px; }',
+                            {
+                                r: value,
+                                t: (h - w),
+                                l: (w - h),
+                                w: H, h: W
+                            });
+                    }
+                },
+
+                render = {
+                    __textDiv(parent, text) {
+                        const div = document.createElement('div');
+                        div.textContent = text;
+                        parent.appendChild(div);
+                        return div;
+                    },
+
+                    text(text) {
+                        if (!text) {
+                            body.classList.remove('footer');
+                            text = null;
+                        } else if (text != $displayText) {
+                            body.classList.add('footer');
+                            $text.textContent = '';
+                            const div = this.__textDiv($text, text),
+                                w = div.offsetWidth,
+                                W = $footer.offsetWidth - 100;
+                            if (w > W) $text.innerHTML = '<marquee scrolldelay="65" scrollmount="8">' + text + '</marquee>';
+                        }
+                        $displayText = text;
+                    },
+                    body(content) {
+                        const
+                            {mediaType} = content,
+                            src = __src(content),
+                            iframe = '<iframe scrolling="no" src="{src}/index.html?name={name}&index={n}&v={time}"></iframe>';
+
+                        // html문서
+                        if (/html$/i.test(mediaType)) {
+                            $body.innerHTML = _replace(iframe, {src: src, time: new Date().getTime(), name: $user, n: $index});
+                        }
+                        // 동영상
+                        else if (/mp4|kmv/i.test(mediaType)) {
+                            $body.innerHTML = '<iframe scrolling="no" src="/dist/viewer/video.html?src=' + src + '"></iframe>';
+                        }
+                        // 이미지
+                        else {
+                            $body.innerHTML = '<iframe scrolling="no" src="/dist/viewer/img.html?src=' + src + '"></iframe>';
+                        }
+                    }
+                },
+
+                _request = {
+                    post(data) {
+                        const [iframe] = $body.getElementsByTagName('iframe');
+                        iframe && iframe.contentWindow.postMessage(data);
+                    },
+                    reload(data, {content}) {
+                        if (content) render.body(content);
+                    },
+                },
+
+                $errorHandler = () => {
+                    // 서버통신 중인지 확인하는 점멸등
+                    let connectLed = document.getElementById('connect-led'),
+                        $tryCount = document.getElementById('try-count'),
+                        count = 1,
+                        datetime = _replace('{0}-{1}-{2}({3}) {5} {6}:{7}', _datetime(new Date())),
+
+                        loop = () => {
+                            $tryCount.textContent = 'Try Count : ' + count++;
+                            connectLed.className = connectLed.className ? '' : 'on';
+                            fetch('/', {method: 'HEAD'})
+                                .then((res) => res.status === 200 && location.reload())
+                                .finally(() => setTimeout(loop, 5000));
+                        };
+
+                    document.getElementById('disconnected-time').textContent = 'Disconnected Time : ' + datetime;
+                    body.classList.add('error');
+                    loop();
+                };
+
+
+            (function ($errorCount = 0) {
+
+                const eventSource = new EventSource('/data/i/' + $user + '/' + $index + '?sse=ok&certifyKey=' + $certify);
+
+                // 에러가 2번 이상이면 접속이 끊어졌다고 판단한다
+                eventSource.onerror = (e) => {
+                    $errorCount++;
+                    if ($errorCount > 1) {
+                        eventSource.close();    // 일단 끄고 폴링방식으로 대체
+                        $errorHandler();
+                    }
+                };
+
+                /*
+                 * serverTime을 따로 쓰는 이유는 브라우저의 시간과 서버의 시간이 다르기 때문이다.
+                 * 이같은 시간의 부정합은 변경 시간을 따지는데 있어 큰 오류가 날 수 있다.
+                 * 만약 브라우저 시간이 서버시간보다
+                 */
+                eventSource.onmessage = (e) => {
+
+
+                    // 에러 중인 상태라면
+                    if ($errorCount > 1) {
+                        document.body.classList.remove('error');
+                    }
+                    $errorCount = 0;
+
+                    const display = JSON.parse(e.data),
+                        {updateTime, text, content, request, refreshTime, serverTime, root, path, name} = display,
+                        source = root + '/' + path + '/' + name;
+
+                    // ① 새로고침 확인
+                    if ($serverTime && $serverTime < refreshTime) {
+                        location.reload();
+                    }
+
+                    // screen mode;
+                    _rotate(parseInt(localStorage.getItem('solllus.config.rotate') || '0'));
+
+                    // ② 디스플레이 텍스트
+                    render.text(text);
+
+                    // ③ 디스플레이 자체적인 명령
+                    let requestCount = 0;
+                    if (request && $serverTime) {
+                        for (let time in request) {
+                            if (parseInt(time) > $serverTime) {
+                                const [name, data] = JSON.parse(request[time]);
+                                _request[name] && _request[name](data, display);
+                                requestCount++;
+                            }
+                        }
+                    }
+
+                    // ④ 컨텐츠 렌더링
+                    if (content) {
+                        if (source !== $source) render.body(content);
+                    } else $body.textContent = '';
+
+                    $source = source;
+                    $serverTime = serverTime;
+                };
+            })();
+
+            document.title = $index + '-' + $user;
+        };
+
+
+    // 접속 인증
+    (function ([, user, index]) {
+        let
+            LOCAL_KEY = 'solllus.certify.key',
+            key = localStorage.getItem(LOCAL_KEY),
+            href = ['/certify', user, index].join('/');
+        // user, index만 가지고도 임시 인증키를 내려주는 경우가 있다.
+        fetch('/data/i/certify?index=' + index + '&name=' + user + '&value=' + key)
+            .then((res) => res.text())
+            .then(serverKey => serverKey ? $run(user, index, serverKey) : location.href = href);
+    })(location.pathname.replace(/\/*$/, '').slice(1).split('/'))
+
+
+</script>
+</body>
+</html>

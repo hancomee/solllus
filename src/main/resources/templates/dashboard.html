@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="/dist/lib/css/reboot.css"/>
+
+    <style>
+
+        a, a:link, a:visited {
+            color: #3278c1;
+        }
+
+        body {
+            overflow-x: hidden;
+            overflow-y: scroll;
+            background-color: #e9e9e9;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+
+        }
+
+        .body {
+            padding: 2rem;
+        }
+
+        .header {
+            height: 60px;
+        }
+
+        .body {
+            margin: 0 auto;
+            width: 960px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .85rem;
+            background-color: white;
+        }
+
+        th {
+            padding: .5rem;
+            background-color: #454545;
+            color: whitesmoke;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        td {
+            height: 3rem;
+        }
+
+        input {
+            width: 10rem;
+            padding: 0.25rem 0.5rem;
+
+            border: 1px solid #b1b1b1;
+            font-size: .8rem;
+            color: #7e7e7e;
+            background-color: whitesmoke;
+        }
+
+        @media (min-width: 760px) {
+            #container {
+                flex-direction: row;
+            }
+
+            .container {
+                width: 50%;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+
+<div id="container">
+    <div class="container">
+        <div class="header"></div>
+        <div class="body">
+            <table>
+                <thead>
+                <tr>
+                    <th>no</th>
+                    <th>create</th>
+                    <th>path</th>
+                    <th>nickname</th>
+                    <th>key</th>
+                    <th>...</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr data-template="?certify">
+                    <td data-value="no"></td>
+                    <td data-value="create"></td>
+                    <td data-value="path"></td>
+                    <td>
+                        <input data-value="nickname">
+                    </td>
+                    <td data-value="key"></td>
+                    <td>
+                        <span data-event="save">저장</span>
+                        <span data-event="remove" class="ms-2">삭제</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header"></div>
+        <div class="body">
+            <table>
+                <thead>
+                <tr>
+                    <th>no</th>
+                    <th>create</th>
+                    <th>path</th>
+                    <th>certify</th>
+                    <th>@hash</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr data-template="?display">
+                    <td data-value="no"></td>
+                    <td data-value="create"></td>
+                    <td data-value="path"></td>
+                    <td data-value="certify"></td>
+                    <td data-value="hash"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel.js"></script>
+<script>
+
+
+    const $init = ([certifyMap, displayMap], certifyTemplates = [], displayTemplates = []) => {
+
+        const
+
+
+            $sort = (array, prop, isACS = true) => {
+                const handler = (a, b) => (a.data[prop] < b.data[prop] ? -1 : 1) * (isACS ? 1 : -1);
+                array.sort(handler).forEach(template => template.appendTo());
+            },
+
+
+            SortTable = class {
+                container
+                array
+
+                constructor(container, array) {
+                    this.array = array;
+                    this.container = container;
+                }
+
+
+            },
+
+            Certify = class extends JS.Template {
+
+                toJSON() {
+                    const {data, element} = this;
+                    data.nickname = element.getElementsByTagName('input')[0].value;
+                    return data;
+                }
+
+                apply() {
+                    this.eachElement({
+                        create(e, {createTime}) {
+                            e.textContent = JS.datetime(createTime);
+                        },
+                        path(e, {name, index}) {
+                            e.textContent = name + ' / ' + index;
+                        },
+                        nickname(e, {nickname}) {
+                            e.value = nickname;
+                        },
+                        key(e, {value}) {
+                            e.textContent = value;
+                        }
+                    })
+                    return this;
+                }
+
+            },
+
+            Display = class extends JS.Template {
+
+                apply() {
+                    this.eachElement({
+                        create(e, {createTime}) {
+                            e.textContent = JS.datetime(createTime);
+                        },
+                        path(e, {user, index}) {
+                            const anchor = '<a href="/admin/' + user + '" target="_blank">' + user + ' / ' + index + '</a>';
+                            e.innerHTML = anchor;
+                        },
+                        certify(e, {certifyKey}) {
+                            e.textContent = certifyKey;
+                        },
+                        hash(e, {hash}) {
+                            e.textContent = hash;
+                        }
+                    })
+                    return this;
+                }
+
+            };
+
+
+        for (let p in certifyMap) {
+            certifyTemplates.push(new Certify(certifyMap[p]).apply());
+        }
+
+        for (let p in displayMap) {
+            if (displayMap[p]) {
+                displayMap[p].forEach(data => data && displayTemplates.push(new Display(data).apply()));
+            }
+        }
+
+        $sort(certifyTemplates, 'createTime', false);
+        $sort(displayTemplates, 'createTime', false);
+
+    };
+
+    JS.addEvent({
+        save({$template}) {
+            JS.fetch('PUT:/data/i/certify', $template.toJSON()).then(res => res.ok);
+        },
+        remove({$template: {element, data}}) {
+            if (confirm(data.name + '/' + data.index + ' : ' + data.nickname + '\n삭제하시겠습니까?')) {
+                JS.fetch('DELETE:/data/i/certify?value=' + data.value)
+                    .then(res => res.ok)
+                    .then(() => element.parentElement.removeChild(element))
+            }
+        }
+    })
+
+    JS.fetch('/data/s/display/all')
+        .then(res => res.json())
+        .then($init);
+
+</script>
+
+
+<script>
+</script>
+</body>
+</html>

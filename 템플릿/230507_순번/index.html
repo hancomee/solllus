@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&display=swap" rel="stylesheet">
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+    <link href="/dist/admin-app.css" rel="stylesheet" type="text/css">
+    <link href="/dist/app-util.css" rel="stylesheet" type="text/css">
+    <style>
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem 2rem;
+            margin-bottom: 1rem;
+            color: #ccc;
+            background-color: #2a2a2a;
+            border-bottom: 1px solid white;
+        }
+
+        #brand {
+            font-size: 3rem;
+        }
+
+
+        .body {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .body > div {
+            padding: 1rem;
+            width: 20%;
+        }
+
+        .item {
+            overflow: hidden;
+            text-align: center;
+            background-color: white;
+            border-radius: 0.5rem;
+            border: 2px solid white;
+        }
+
+        .text {
+            overflow: hidden;
+            padding: 0.75rem 0;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            font-size: 5rem;
+        }
+
+        .count {
+            display: block;
+            background-color: #416e9d;
+            padding: 0.7rem;
+            color: white;
+            font-size: 2.5rem;
+        }
+
+
+    </style>
+</head>
+<body data-template="body">
+
+<main>
+
+    <div class="header">
+        <strong id="brand"></strong>
+        <div id="time"></div>
+    </div>
+
+    <div id="body" class="body">
+        <div data-template="?item">
+            <div class="item">
+                <div class="text"><strong data-set-text="data.text"></strong></div>
+                <strong class="count"></strong>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+<script>
+
+    const
+        data = {
+            brand: 'COFFEA COFFEE Orders',
+            values: [
+                {
+                    datetime: new Date().getTime(),
+                    text: '854'
+                },
+                {
+                    datetime: new Date().getTime(),
+                    text: '854'
+                }
+            ]
+        },
+
+        Item = class extends JS.Template {
+            $count
+
+            init() {
+                this.$count = this.element.getElementsByClassName('count')[0];
+                return this;
+            }
+
+            count(currentTime) {
+                if (currentTime < this.data.datetime) currentTime = this.data.datetime;
+                const {datetime} = this.data,
+                    time = JS.Math.division(currentTime - datetime, 1000),
+                    minute = JS.Math.division(time, 60),
+                    second = time % 60;
+                this.$count.textContent = JS.Format.prefix_fill('0', minute, 2) + ':' + JS.Format.prefix_fill('0', second, 2);
+                return this;
+            }
+
+        },
+
+        $body = new class Body extends JS.Template {
+
+            items = []
+
+            constructor() {
+                super();
+                const loop = () => {
+                    this.clock(new Date());
+                    setTimeout(loop, 1000);
+                };
+                loop();
+            }
+
+            init() {
+                const {brand, values} = this.data || {brand: '', values: []},
+                    time = new Date().getTime();
+                document.getElementById('brand').textContent = brand;
+                document.getElementById('body').textContent = '';
+                this.items = values.map(value => new Item(value).init().count(time).apply().appendTo());
+                return this;
+            }
+
+            clock(datetime) {
+                this.count(datetime.getTime());
+                document.getElementById('time').innerHTML = JS.datetime(datetime,
+                    '<ul clock>' +
+                    '<li><span>yyyy.<strong>M.d</strong><small>(E)</small></span></li>' +
+                    '<li><strong title="ap">h</strong><small>:</small><strong>mm</strong>' +
+                    '<small u>:</small><strong u>ss</strong></li>' +
+                    '</ul>');
+                return this;
+            }
+
+            count(time) {
+                this.items && this.items.forEach(item => item.count(time));
+                return this;
+            }
+        },
+        read = () => APP.getJSON().then(data => $body.setData(data).init());
+
+    window.addEventListener('message', read)
+    read();
+
+</script>
+</body>
+</html>

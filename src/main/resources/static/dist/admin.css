@@ -1,0 +1,532 @@
+@charset "UTF-8";
+html, body {
+  height: 110%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll;
+  padding-top: 60px;
+  color: #666;
+  font-size: 0.85rem;
+  background-color: #e7e7e7;
+}
+body.supreme [data-view=supreme] {
+  display: none;
+}
+
+input:hover, input:focus, textarea:hover, textarea:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.hide, [data-template^="?"] {
+  display: none;
+}
+
+[href=disabled] {
+  cursor: no-drop;
+  pointer-events: none;
+}
+
+[data-event] {
+  cursor: pointer;
+}
+
+a, a a:link, a a:visited, a a:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+span[data-event], b[data-event], strong[data-event], img[data-event] {
+  cursor: pointer;
+}
+
+.media-type {
+  padding: 0.3rem 0.6rem;
+  color: #222222;
+  font-weight: normal;
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+}
+
+[data-media-type^=video] .media-type {
+  color: #75b937;
+}
+
+[data-media-type^=image] .media-type {
+  color: #1da2b7;
+}
+
+[data-media-type$=html] .media-type {
+  color: #e1a639;
+}
+[data-media-type$=html] .media-type.admin {
+  color: white;
+  background-color: #3c76bd;
+  border-radius: 3px;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+aside, nav {
+  position: fixed;
+  left: 0;
+  z-index: 1041;
+}
+
+nav {
+  top: 0;
+  right: 0;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  z-index: 1042;
+  border-bottom: 1px solid #d9d9d9;
+  background-color: #fff;
+  color: #666;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 1.1rem;
+}
+.brand > i {
+  display: flex;
+  background-color: #6075a7;
+  color: white;
+  padding: 0.35rem;
+  border-radius: 50%;
+}
+.brand #brand {
+  color: #6075a7;
+  letter-spacing: -0.05rem;
+}
+
+.nav-btns {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.supreme-panel {
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  white-space: nowrap;
+  background-color: #205b5e;
+  color: white;
+  border-bottom: 1px solid #0f2729;
+}
+.supreme-panel.open {
+  display: flex;
+}
+.supreme-panel > div {
+  display: flex;
+  gap: 0.5rem;
+}
+.supreme-panel input, .supreme-panel .btn {
+  padding: 0.75rem;
+  border: 0;
+}
+.supreme-panel input {
+  flex: 1 1 auto;
+  width: 1%;
+}
+.supreme-panel .btn {
+  border: 1px solid #9fcdcd;
+  background-color: #0c3a3d;
+  color: white;
+}
+.supreme-panel .btn:hover {
+  border-color: white;
+  transition: 0.2s ease border;
+}
+.supreme-panel input {
+  color: #606060;
+}
+.supreme-panel .delete-user {
+  background-color: darkred;
+}
+
+.content-container {
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 2px;
+}
+.content-container .content-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.6rem;
+}
+.content-container .content-body {
+  position: relative;
+  flex: 1 1 auto;
+}
+.content-container .content-body > div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+.content-container .content-body > div .app-thumb {
+  text-align: center;
+}
+.content-container .content-body > div .app-thumb > b {
+  display: block;
+}
+.content-container .content-body > div .app-thumb > a {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  margin-top: 0.3rem;
+  color: #c17659;
+  border: 1px solid;
+  border-radius: 0.2rem;
+  font-size: 0.75rem;
+}
+.content-container .content-body > div img, .content-container .content-body > div video {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+}
+.content-container .content-body > div > b {
+  font-size: 0.95rem;
+  color: #919191;
+}
+
+.display-container {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  height: 180px;
+}
+
+.display-row {
+  display: flex;
+  padding: 1rem 1rem 1.5rem;
+  height: inherit;
+}
+.display-row.active .display {
+  border: 1px solid white;
+  transition: border 0.1s ease;
+  box-shadow: 0 0 5px #666, 0 0 8px #aaa;
+}
+
+.display {
+  flex: 1 1 auto;
+  width: 13rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d3d3d3;
+}
+.display .content-header {
+  padding: 0.45rem 0.75rem;
+  background-color: #efefef;
+  font-size: 0.75rem;
+  color: #999999;
+  border-bottom: 1px solid #e1e1e1;
+}
+.display.active {
+  border: 1px solid #4f6b9f;
+}
+.display.active .content-header {
+  background-color: #4f6b9f;
+  color: white !important;
+}
+.display.active .content-header > a {
+  color: #dfdfdf;
+}
+.display .content-body {
+  cursor: pointer;
+  background-color: #fff;
+}
+
+.manager {
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+.manager.active .manager-notice {
+  transform: translateY(100%);
+}
+.manager-notice {
+  display: flex;
+  justify-content: center;
+  padding-top: 5rem;
+  z-index: 1041;
+  color: white;
+  transform: translateY(0);
+  transition: 0.2s ease transform;
+  font-size: 0.9rem;
+}
+.manager-notice, .manager-notice:before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  content: "";
+}
+.manager-notice:before {
+  content: "";
+  z-index: -1;
+  background-color: black;
+  opacity: 0.85;
+}
+.manager-notice strong {
+  font-size: 1.15rem;
+}
+.manager-notice svg {
+  width: 4rem;
+  height: 4rem;
+}
+.manager-notice strong, .manager-notice svg {
+  color: #a9f332;
+}
+.manager-header {
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  height: 40px;
+  background-color: #303030;
+  color: #c1c1c1;
+}
+.manager-body {
+  overflow-y: scroll;
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 60px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: baseline;
+  padding: 0.5rem;
+  background-color: #444444;
+}
+.manager-body .app-thumb > a {
+  display: none !important;
+}
+.manager-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  height: 60px;
+  background-color: #363636;
+  border-top: 1px solid #2c2c2c;
+}
+.manager-footer .content-text {
+  display: flex;
+  height: 36px;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  border: 1px solid #282828;
+}
+.manager-footer .content-text > input {
+  width: 100%;
+  padding: 0 2.5rem 0 1rem;
+  background-color: #adadad;
+  border: 0;
+  color: #323232;
+}
+.manager-footer .content-text > span {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  background-color: #4c4c4c;
+  color: #d9d9d9;
+}
+.manager-footer .content-text > span > b {
+  position: absolute;
+  left: 0;
+  margin-left: -33px;
+  width: 24px;
+  height: 24px;
+  background-color: #d52e2e;
+  text-align: center;
+  border-radius: 50%;
+  line-height: 24px;
+  color: white;
+}
+.manager .content {
+  position: relative;
+  display: flex;
+  padding: 0 0.5rem;
+  width: 33.3333333333%;
+  height: 7rem;
+}
+.manager .content[data-approval=false], .manager .content[data-approval="0"] {
+  opacity: 0.4 !important;
+  cursor: none !important;
+}
+.manager .content[data-approval=false] .content-container, .manager .content[data-approval="0"] .content-container {
+  outline: 0 !important;
+}
+.manager .content[data-approval="0"] [data-approval-view]:not([data-approval-view="0"]) {
+  display: none;
+}
+.manager .content[data-approval="1"] [data-approval-view]:not([data-approval-view="1"]) {
+  display: none;
+}
+.manager .content .del-media {
+  display: none;
+}
+.manager .content[data-media-type^=image] .del-media, .manager .content[data-media-type^=video] .del-media {
+  display: block;
+}
+.manager .content.active > .content-container {
+  outline: 2px solid #f7c920 !important;
+}
+.manager .content .content-container {
+  margin-top: 1rem;
+  flex-grow: 1;
+  cursor: pointer;
+  transition: border 0.3s ease;
+  border-radius: 0.5rem;
+}
+.manager .content .content-container:hover {
+  outline: 1px solid #bdbdbd;
+  transition: 0.5s ease outline;
+}
+.manager .content .content-container .content-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  padding: 0;
+  background-color: transparent;
+  color: #c7c7c7;
+  font-size: 0;
+}
+.manager .content .content-container .content-header > b {
+  border-radius: 0;
+}
+.manager .content .content-container .content-header .delete-btn {
+  margin: 0.5rem 0.3rem;
+  text-align: center;
+  color: white;
+  transition: 0.2s ease color;
+}
+.manager .content .content-container .content-header .delete-btn > svg {
+  width: 90%;
+  height: 90%;
+}
+.manager .content .content-container .content-header .delete-btn:active {
+  color: #cd1515;
+}
+.manager .content .content-container .content-body {
+  background-color: #222;
+}
+.manager .content .content-container .content-supreme {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.5rem;
+  font-size: 0.75rem;
+  z-index: 1;
+  color: white;
+}
+.manager .content .content-container .content-supreme:hover {
+  color: yellow;
+}
+
+#pop-up {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-size: 1.15rem;
+  color: #ddd;
+}
+#pop-up.active {
+  display: flex;
+}
+#pop-up, #pop-up:before {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+#pop-up:before {
+  z-index: -1;
+  content: "";
+  background-color: black;
+  opacity: 0.8;
+}
+
+@media (min-width: 900px) {
+  .supreme-panel {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .content {
+    width: 14.2857142857% !important;
+  }
+  .display {
+    width: 25rem !important;
+  }
+}
+@media (min-width: 1000px) {
+  .content {
+    width: 10% !important;
+  }
+  .display-container {
+    height: 250px;
+  }
+  .display-container::-webkit-scrollbar {
+    height: 6px;
+  }
+  .display-container::-webkit-scrollbar-thumb {
+    width: 30%; /* 스크롤바의 길이 */
+    background: #3c76bd; /* 스크롤바의 색상 */
+  }
+  .display-container::-webkit-scrollbar-track {
+    background: #e7e7e7; /*스크롤바 뒷 배경 색상*/
+  }
+  .manager-body::-webkit-scrollbar {
+    width: 2px; /* 스크롤바의 너비 */
+    height: 8px;
+  }
+  .manager-body::-webkit-scrollbar-thumb {
+    height: 30%; /* 스크롤바의 길이 */
+    background: #217af4; /* 스크롤바의 색상 */
+    border-radius: 1px;
+  }
+  .manager-body::-webkit-scrollbar-track {
+    background: #242424; /*스크롤바 뒷 배경 색상*/
+  }
+}
+@media (min-width: 1200px) {
+  .content {
+    width: 8.3333333333% !important;
+    height: 9rem !important;
+  }
+}
+
+/*# sourceMappingURL=admin.css.map */

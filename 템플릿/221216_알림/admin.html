@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="/dist/fonts/SpoqaHanSansNeo.css" rel="stylesheet" type="text/css">
+    <link href="/dist/lib/css/reboot.css" rel="stylesheet" type="text/css">
+    <link href="/dist/src/app-admin.css" rel="stylesheet" type="text/css">
+
+    <style>
+
+        .container {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        input, textarea {
+            padding: 1rem;
+            width: 100%;
+            border: 0 !important;
+            outline: 0 !important;
+
+            font-family: 'Spoqa Han Sans Neo';
+            background-color: whitesmoke;
+
+            border-radius: .5rem;
+            color: #666;
+            resize: none;
+        }
+
+        input {
+            flex: 0 0 auto;
+            font-size: 1rem;
+        }
+
+        textarea {
+            margin-top: 1rem;
+            flex: 1 1 auto;
+            font-size: 1.5rem;
+            height: 15rem;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/admin" target="_parent">ADMIN</a>
+    <span id="send" class="ms-auto" data-event="save">save</span>
+</nav>
+
+<div class="container">
+    <input id="title">
+    <textarea id="body"></textarea>
+</div>
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+
+<script>
+
+    const
+        [$title, $body, $send, $brand] = JS.selector('title body send brand');
+
+    $send.addEventListener('click', () => {
+        let title = $title.value.trim(), body = $body.value.trim();
+
+        document.body.dataset.alert = 'Save....';
+        APP.setJSON({title: title, body: body, datetime: new Date().getTime()})
+            .then(APP.postMessage)
+            .then(() => JS.delay(300))
+            .then(() => document.body.removeAttribute('data-alert'));
+    });
+
+    APP.getJSON().then(data => {
+        if (data) {
+            const {title, body} = data;
+            $title.value = title;
+            $body.value = body;
+        }
+    });
+
+</script>
+
+</body>
+</html>

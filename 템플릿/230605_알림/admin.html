@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+
+    <link href="/dist/fonts/SpoqaHanSansNeo.css" rel="stylesheet" type="text/css">
+    <link href="/dist/lib/css/reboot.css" rel="stylesheet" type="text/css">
+    <link href="/dist/src/app-admin.css" rel="stylesheet" type="text/css">
+    <style>
+
+        .container {
+            padding: 1rem;
+            margin: 0 auto;
+            max-width: 760px;
+        }
+
+        .value {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            width: 100%;
+            background-color: #ebebeb;
+            border-radius: 0.5em;
+            border: 1px solid #9b9b9b;
+        }
+
+        .header {
+            color: #646464;
+            text-align: center;
+        }
+
+        .body {
+            display: flex;
+            gap: .7em;
+            margin: .7em 0;
+        }
+
+        .thumb {
+            width: 25%;
+
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+            background-color: #ccc;
+            border-radius: 0.4em;
+        }
+
+        textarea {
+            padding: 1rem;
+            width: 100%;
+            height: 10rem;
+            border: 1px solid #c3c3c3;
+            color: #747474;
+            font-size: 1rem;
+            border-radius: 0.4em;
+        }
+
+
+    </style>
+    <style id="style"></style>
+</head>
+<body>
+
+<nav>
+    <a class="home" href="/admin">ADMIN</a>
+    <span class="ms-auto" data-event="save">save</span>
+</nav>
+
+<div class="container">
+    <div class="value" data-template="?content">
+        <div class="header">
+            <strong>▲버튼 (ArrowUp)</strong>
+        </div>
+        <div class="body">
+            <div class="thumb" data-event="upload"></div>
+            <textarea></textarea>
+        </div>
+        <div class="footer">
+            <small>설명</small>
+        </div>
+    </div>
+</div>
+
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+<script>
+
+
+    const
+        Content = class extends JS.Template {
+            key
+
+            $thumb
+            $textarea
+            file
+            data = {}
+
+            constructor() {
+                super();
+                this.$thumb = this.element.getElementsByClassName('thumb')[0];
+                this.$textarea = this.element.getElementsByTagName('textarea')[0];
+            }
+
+            init(data) {
+                this.data = data;
+                this.$textarea.value = data.text || '';
+
+                this.$thumb.style.backgroundImage = this.$thumb.textContent = '';
+
+                if(data.media) {
+                    if(/image/.test(data.mediaType))
+                        this.$thumb.style.backgroundImage = 'url("' + APP.src(data.media) + '")';
+                    if(/html/.test(data.mediaType))
+                        this.$thumb.textContent = 'html';
+                }
+                return this;
+            }
+
+            setKey(key, name) {
+                this.element.dataset.key = key;
+                this.key = key;
+                this.element.getElementsByTagName('strong')[0].textContent = name;
+                return this;
+            }
+
+            upload(file) {
+                return new Promise((x) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        this.$thumb.style.backgroundImage = 'url("' + reader.result + '")';
+                        this.file = file;
+                        x(this);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            getData() {
+                return {
+                    text: this.$textarea.value,
+                    media: this.data.media,
+                    mediaType: this.data.mediaType
+                }
+            }
+        },
+
+        $contents = (function (keys) {
+            return keys.map(str => {
+                const [key, name] = str.split(':');
+                return new Content().setKey(key, name).appendTo();
+            });
+        })('ArrowUp:위쪽 버튼    ArrowDown:아래 버튼    ArrowLeft:왼쪽 버튼   ArrowRight:오른쪽 버튼'.split(/\s{2,}/));
+
+    APP.getJSON().then(data => {
+        console.log(data);
+        if (data) {
+            const {values} = data;
+            $contents.forEach(content => {
+                const value = values[content.key];
+                if (value) content.init(value);
+            })
+        }
+    });
+
+
+    JS.addEvent({
+        upload({$template}) {
+            JS.inputFile({
+                accept([file]) {
+                    $template.upload(file);
+                }
+            })
+        },
+        save() {
+            document.body.dataset.alert = '저장중...';
+            Promise
+                // 파일 업로드
+                .all($contents.map((content, i) => {
+                    if (content.file) {
+                        const file = content.file,
+                            filename = new Date().getTime() + '_' + file.name;
+                        return APP.uploadFiles([{file: file, filename: filename}])
+                            .then(() => {
+                                content.file = null;
+                                content.data.media = filename;
+                                content.data.mediaType = file.type;
+                            })
+                    }
+                }))
+                // 임시파일 삭제
+                .then(() => APP.removeTemps($contents.map(({data: {media}}) => media || '')))
+                .then(() => {
+                    const values = {};
+                    $contents.forEach(content => values[content.key] = content.getData());
+                    return APP.setJSON({values: values})
+                })
+                .then(APP.postMessage)
+                .then(() => document.body.removeAttribute('data-alert'));
+        }
+    })
+
+
+</script>
+
+</body>
+</html>

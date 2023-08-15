@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+    <link href='/dist/lib/css/reboot.css' rel='stylesheet' type='text/css'>
+
+    <style>
+
+        *, ::before, ::after {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            background-color: #1c1c1c;
+        }
+
+        body, .container, #text {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 90%;
+            height: 90%;
+            border-radius: 1rem;
+        }
+
+        .container[data-datetime]:after {
+            position: fixed;
+            bottom: 1rem;
+            right: 0;
+            left: 0;
+            color: #888;
+            text-align: center;
+            content: attr(data-datetime);
+        }
+
+        #text {
+            flex-direction: column;
+        }
+
+        #title {
+            margin-bottom: .5em;
+            padding: 0.15em 0.4em;
+            font-size: 2.75em;
+            background-color: #ffbc00;
+            border-radius: 0.1em;
+            color: black;
+            font-weight: bolder;
+            white-space: nowrap;
+        }
+
+        #title:empty {
+            display: none;
+        }
+
+        pre {
+            margin: 0;
+            font-size: 4em;
+            text-align: center;
+            font-weight: bolder;
+            color: white;
+            line-height: 1.4;
+        }
+
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="text">
+        <span id="title"></span>
+        <pre id="pre"></pre>
+    </div>
+</div>
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+<script>
+
+    const
+
+        $data = {
+            text: null,
+            title: null
+        },
+
+        [$container, $text, $title, $pre, $datetime] = JS.selector('.container text title pre datetime'),
+        textRender = () => {
+            let
+                {title, text} = $data,
+                em = 2, limit = 100;
+
+            $title.textContent = title;
+            $pre.textContent = text;
+
+            $text.style.fontSize = em + 'em';
+
+            let w = $text.offsetWidth, h = $text.offsetHeight,
+                W = $container.offsetWidth, H = $container.offsetHeight;
+
+            while ((w > W || h > H) && limit-- > 0) {
+                em = (em - .1).toFixed(1);
+                $text.style.fontSize = em + 'em';
+                w = $text.offsetWidth;
+                h = $text.offsetHeight;
+            }
+        },
+        render = () => {
+            APP.getJSON().then(data => {
+                if (data) {
+                    const {title, body, datetime} = data;
+                    $container.dataset.datetime = 'lastModifiedTime : ' + JS.datetime(new Date(datetime), 'yyyy-MM-dd(E) HH:mm:ss');
+                    $data.title = title;
+                    $data.text = body;
+                    textRender();
+                }
+            })
+        };
+
+    render();
+
+    window.addEventListener('message', render);
+    window.addEventListener('resize', textRender)
+
+</script>
+
+
+</body>
+</html>

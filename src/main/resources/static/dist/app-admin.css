@@ -1,0 +1,60 @@
+html, body {
+    height: 100%;
+    font-family: 'Spoqa Han Sans Neo';
+}
+
+body {
+    margin: 0;
+    padding-top: 50px;
+    background-color: #333;
+}
+
+body:after {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    content: '저장 중..';
+    z-index: 9999;
+    opacity: .8;
+    background-color: black;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+body.saving:after {
+    display: flex;
+}
+
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    background-color: #222222;
+    border-bottom: 1px solid #111;
+    color: #eee;
+}
+
+.brand {
+    margin-right: auto;
+    color: #ddd !important;
+}
+
+.nav-btn {
+    cursor: pointer;
+}
+
+.nav-btn + .nav-btn {
+    margin-left: 1rem;
+}
+
+[data-template^="?"] {
+    display: none;
+}

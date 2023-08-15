@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+
+    <style>
+
+        :root {
+            --footer-height: 6rem;
+        }
+
+        *, ::before, ::after {
+            box-sizing: border-box;
+        }
+
+        html, body, #container {
+            margin: 0;
+            height: 100%;
+            background-color: #222;
+        }
+
+        #container {
+            display: flex;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .box {
+            position: relative;
+            border: 1px solid #484848;
+            font-weight: bolder;
+            color: transparent;
+            transition: background-color .5s ease;
+            text-align: center;
+            vertical-align: middle;
+            color: #4c4c4c;
+        }
+
+        .box > div:first-child {
+            margin-bottom: .75rem;
+            font-size: 1.5rem;
+        }
+
+
+    </style>
+    <style id="style"></style>
+</head>
+<body>
+
+<div id="container">
+    <table>
+        <tbody id="tbody"></tbody>
+    </table>
+</div>
+
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+
+<script>
+
+    const $tbody = document.getElementById('tbody'),
+        $style = document.getElementById('style'),
+        array = [5, 5],
+
+        // 막 들어왔을때 하이라이트 기능
+        _highLight = (td) => {
+            td.classList.add('highlight');
+            setTimeout(() => td.classList.remove('highlight'), 10000);
+        };
+
+    $style.innerText = '.box { height: ' + (100/array[1]) + '%; }';
+
+    (function ([col, row]) {
+        let idx = 1, html = [];
+        for (let i = 0; i < col; i++) {
+            html.push('<tr>');
+            for (let j = 0; j < row; j++) {
+                html.push(JS.replace('<td class="box" id="{0}">{0}</td>', [idx++]))
+            }
+            html.push('</tr>');
+        }
+        $tbody.innerHTML = html.join('');
+    })(array);
+
+    document.addEventListener('click', ({target}) => {
+        if(/td/i.test(target.tagName)) {
+            console.log(target);
+            APP.postMessage({index: target.id});
+        }
+    })
+
+</script>
+
+</body>
+</html>

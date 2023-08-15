@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>관리자</title>
+
+    <link href="/dist/fonts/SpoqaHanSansNeo.css" rel="stylesheet" type="text/css">
+    <link href="/dist/lib/css/reboot.css" rel="stylesheet">
+
+    <style>
+
+        ::-webkit-scrollbar {
+            width: 5px; /* 스크롤바의 너비 */
+        }
+
+        ::-webkit-scrollbar-thumb {
+            height: 30%; /* 스크롤바의 길이 */
+            background: #555; /* 스크롤바의 색상 */
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #333; /*스크롤바 뒷 배경 색상*/
+        }
+
+
+        :root {
+            --aside-width: 300px;
+        }
+
+        body {
+            padding: 60px 0 0 var(--aside-width);
+            background-color: #ccc;
+        }
+
+        aside, nav, #pop, #pop:before {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            color: #aaa;
+        }
+
+        #pop {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1041;
+        }
+
+        #pop:empty {
+            display: none;
+        }
+
+        #pop:before {
+            content: '';
+            background-color: black;
+            opacity: .8;
+            z-index: -1;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            bottom: auto;
+            padding: 1.5rem;
+            height: 60px;
+            background-color: #333;
+            border-bottom: 1px solid #111;
+            z-index: 1040;
+        }
+
+        aside {
+            overflow-y: scroll;
+            top: 60px;
+            right: auto;
+            width: var(--aside-width);
+            background-color: #333;
+            border-top: 1px solid #4c4c4c;
+        }
+
+
+        /* ***************** ▼ 디렉토리 ▼ ***************** */
+        #directories {
+            user-select: none;
+            margin-top: 1rem;
+            padding-left: 1rem;
+        }
+
+        ul, li {
+            display: block;
+            list-style: none;
+        }
+
+        ul {
+            padding-left: 1rem
+        }
+
+        li {
+            position: relative;
+            padding: 0.15rem 0;
+            font-size: 1rem;
+        }
+
+        li > span {
+            display: none;
+            position: absolute;
+            margin-top: .35rem;
+            margin-left: -.9rem;
+            font-size: .5rem;
+        }
+
+        li[data-has-sub="true"] > span {
+            display: block;
+        }
+
+        li > .dir-name {
+            position: relative;
+        }
+
+        li strong {
+            word-break: break-all;
+        }
+
+        li.active strong {
+            color: #ffbc00;
+            transition: .2s ease color;
+        }
+
+        li > .sub {
+            display: none;
+        }
+
+        li[data-open="true"] > .sub {
+            display: block;
+        }
+
+        li[data-open="true"] > span {
+            margin-top: .3rem;
+            transform: rotate(90deg);
+        }
+
+        li[data-hidden="true"] div strong, li[data-hidden="true"] span {
+            color: #6a6a6a;
+            font-weight: normal;
+        }
+
+        .dir-btn {
+            display: none;
+            color: #565656;
+        }
+
+        .dir-name:hover .dir-btn {
+            display: inline-block;
+        }
+
+        .dir-name.delete > strong:first-child {
+            color: #ff4324;
+        }
+
+        .create-dir {
+            padding: 0.8rem;
+            margin-right: .5rem;
+            background-color: #ffffff;
+            border-radius: 0.3rem;
+            border: 1px solid #858585;
+            text-align: center;
+            font-size: .9rem;
+        }
+
+        .create-dir input {
+            padding: 0.5rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            width: 100%;
+            outline: 0;
+            border: 0;
+            background-color: #d7d7d7;
+            color: #484848;
+        }
+
+        /* ***************** ▲ 디렉토리 ▲ ***************** */
+
+        /* ***************** ▼ 파일 ▼ ***************** */
+
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem 3rem;
+            background-color: #f1f1f1;
+            border-bottom: 1px solid #9c9c9c;
+            color: #333;
+        }
+
+        .header input {
+            padding: .45rem;
+        }
+
+        #links {
+            font-size: 1.25rem;
+            font-weight: bolder;
+        }
+
+        #links > a, #links > span {
+            color: #888;
+        }
+
+        #links > a:hover {
+            color: #2663af;
+        }
+
+        #links > span {
+            padding: 0 .3rem;
+        }
+
+        .files {
+            display: flex;
+            flex-wrap: wrap;
+            padding: .75rem;
+        }
+
+        .files > div {
+            flex: 0 0 auto;
+            width: 12.5%;
+        }
+
+        .delete .file {
+            opacity: .4;
+        }
+
+        .file {
+            overflow: hidden;
+            margin: .75rem;
+            background-color: #222;
+            border-radius: .3rem;
+            color: gainsboro;
+        }
+
+        .file > div {
+            position: relative;
+        }
+
+        .file .remove-btn {
+            /*display: none;*/
+            z-index: -1;
+            opacity: 0;
+        }
+
+        .file:hover .remove-btn {
+            display: flex;
+            z-index: 1;
+            opacity: 1;
+            transition-delay: .1s;
+            transition: .3s ease opacity;
+        }
+
+        .file .remove-btn {
+            position: absolute;
+            right: 0.4rem;
+            top: 0.4rem;
+            align-items: center;
+            justify-content: center;
+            width: 1.5rem;
+            height: 1.5rem;
+            font-size: .8rem;
+            color: white;
+            background-color: red;
+            outline: 2px solid white;
+            border-radius: 50%;
+            font-weight: bolder;
+        }
+
+        .file-info {
+            overflow: hidden;
+            padding: .5rem;
+            height: 3.5rem;
+            font-size: .85rem;
+            text-overflow: ellipsis;
+            word-break: break-all;
+        }
+
+        .file-name {
+        }
+
+        .file-name[data-type]:before {
+            margin-right: .5rem;
+            content: attr(data-type);
+            font-size: .85rem;
+            color: #ffbc00;
+            text-shadow: 0 0 2px black, 0 0 2px black, 0 0 3px black;
+        }
+
+        [data-thumb] {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 7rem;
+            background-color: #464646;
+            color: #ffbc00;
+            font-weight: bolder;
+            font-size: 1.75rem;
+        }
+
+
+        [data-thumb] > img, [data-thumb] > video {
+            width: 90%;
+            height: 90%;
+            object-fit: contain;
+        }
+
+        [data-filetype] {
+            color: #833611;
+            text-align: center;
+        }
+
+        [data-filename] {
+            padding: .2rem 0;
+        }
+
+        /* ***************** ▲ 파일 ▲ ***************** */
+
+    </style>
+    <style type="text/css" id="style"></style>
+
+</head>
+
+<body>
+
+
+<nav>
+    <div id="brand"></div>
+</nav>
+
+<aside>
+    <div id="directories">
+        <ul data-template="?dir">
+            <li data-set-attrs="path:data.path; name:data.name; hasSub:data.hasSub; depth">
+                <span data-event="sub">▶</span>
+                <div class="dir-name">
+                    <strong data-event="select" data-set-text="data.name"></strong>
+                    <strong class="ms-1 dir-btn" data-event="createInput">+</strong>
+                    <strong class="ms-1 dir-btn" data-event="removeDir">-</strong>
+                </div>
+                <div class="create-dir" data-element="?$create">
+                    <input>
+                    <span data-event="createDir">생성</span>
+                    <span data-event="cancelInput">취소</span>
+                </div>
+                <div class="sub"></div>
+            </li>
+        </ul>
+    </div>
+</aside>
+
+
+<main>
+    <div class="header">
+        <div id="links"></div>
+        <span class="ms-auto" data-event="fileOpen">TextEditor</span>
+        <span class="ms-2" data-event="upload">Upload</span>
+    </div>
+
+    <div class="body">
+        <div id="custom-container"></div>
+        <div class="files">
+            <div data-template="?file">
+                <div class="file">
+                    <div>
+                        <div class="remove-btn" data-event="deleteFile">×</div>
+                        <div data-thumb data-event="download"></div>
+                        <div class="file-info">
+                            <div class="file-name" data-set-attrs="type:data.type" data-set-text="data.name" data-event="fileOpen"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+<style>
+    .txt {
+        width: 50%;
+    }
+
+    .txt input, .txt textarea {
+        margin-bottom: 1rem;
+        padding: 1rem;
+        width: 100%;
+        outline: 0;
+        border: 0;
+        resize: none;
+        font-size: 1rem;
+        color: #555;
+    }
+
+    .txt textarea {
+        height: 30rem;
+    }
+
+    .txtBtn {
+        display: flex;
+        justify-content: center;
+    }
+
+    .txtBtn span {
+        color: white;
+    }
+</style>
+<div id="pop">
+    <div class="txt" data-template="txt">
+        <div>
+            <input spellcheck="false" autocomplete="off">
+        </div>
+        <div>
+            <textarea spellcheck="false"></textarea>
+        </div>
+        <div class="txtBtn">
+            <span data-event="txtSave">저장</span>
+            <span data-event="txtCancel" class="ms-2">취소</span>
+        </div>
+    </div>
+</div>
+
+
+<!-- ************************************** ▼ 추가 요소 ▼ ************************************** -->
+<style>
+
+    .user {
+        padding: 1rem 2rem;
+        background-color: #e1e1e1;
+        border-bottom: 1px solid #a5a5a5;
+    }
+
+
+    .user > div {
+        padding: 1.75rem 0;
+    }
+
+    .user > div + div {
+        border-top: 1px solid #9d9d9d;
+    }
+
+    .user[data-flag="0"] .user-header ~ div, .user[data-flag="0"] .remove-user {
+        display: none !important;
+    }
+
+    .user[data-flag="1"] .user-link {
+        background-color: #205f95;
+    }
+
+    .remove-user {
+        background-color: #cf3c3c !important;
+    }
+
+    .user-header {
+        display: flex;
+        align-items: center;
+        color: #888;
+    }
+
+    .user input {
+        padding: 0.5rem 1rem;
+        border: 1px solid #9b9b9b;
+        color: #888;
+    }
+
+    .user label {
+        color: #888;
+    }
+
+
+    [name="password"] {
+        border-color: red;
+    }
+
+    .user-link {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: #999;
+        border-radius: 0.3rem;
+        color: white;
+    }
+
+
+    .display-list {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .display {
+        padding: .5rem;
+        width: 12.5%;
+    }
+
+    .display > div {
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 8rem;
+
+        background-color: white;
+        border: 1px solid #a7a7a7;
+        border-radius: 0.35rem;
+
+        word-break: break-all;
+        text-align: center;
+    }
+
+    .display-add > div {
+        padding: 0.5rem 2rem;
+        justify-content: center;
+        background-color: #424242;
+        border: 0;
+        color: white;
+    }
+
+    .display-add input {
+        background-color: #c3c3c3;
+        border: 0;
+        color: #4c4c4c;
+        border-radius: 0.2rem;
+    }
+
+    .display-info {
+        flex: 0 0 auto;
+    }
+
+    .display-thumb {
+        flex: 1 1 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 1%;
+        background-color: #333;
+        color: #ffb716;
+    }
+
+    .display-thumb > * {
+        width: 90%;
+        height: 90%;
+        object-fit: contain;
+    }
+
+    .display-info {
+        display: flex;
+        justify-content: space-between;
+        padding: .3rem .75rem;
+    }
+
+    .display strong {
+        display: block;
+        font-size: 1.5rem;
+    }
+
+    .display span {
+        font-size: .75rem;
+    }
+
+    .display-list {
+        padding: 1rem 0;
+    }
+
+    .display-list, .apps {
+        margin-left: -.5rem !important;
+        margin-right: -.5rem !important;
+    }
+
+    .apps {
+        display: flex;
+        padding: 1rem 0;
+    }
+
+    .apps > div {
+        background-color: white;
+        padding: 1rem;
+        border: 1px solid #bfbfbf;
+    }
+
+    .select-apps {
+        flex: 0 0 auto;
+        margin-right: 1rem;
+        width: 20%;
+    }
+
+    .select-apps select {
+        padding: 0.5rem;
+        width: 100%;
+        font-size: 1rem;
+        border-radius: 0.3rem;
+        border: 1px solid #ddd;
+        background-color: #f3f3f3;
+        font-weight: bolder;
+        color: #747474;
+    }
+
+    .select-apps pre {
+        color: #afafaf;
+        white-space: pre-line;
+        word-break: break-all;
+    }
+
+    .register-apps {
+        flex: 1 1 auto;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+    }
+
+    .register-apps > div {
+        padding: 0.5rem;
+        margin-left: 1rem;
+        border-radius: 0.2rem;
+        border: 1px solid #a1a1a1;
+        font-weight: normal;
+        background-color: #ffffff;
+        color: #a1a1a1;
+    }
+
+    .apps strong {
+        font-weight: normal;
+    }
+
+    .apps span {
+        margin-left: .5rem;
+    }
+
+    /* *************************** 앱폴더 *************************** */
+    .app {
+        display: flex;
+        margin: 1.5rem 1.5rem 0;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #9d9d9d;
+    }
+
+    .app[data-register="false"] {
+        opacity: .4;
+    }
+
+    .app > * {
+        padding: 0.5rem 1rem;
+    }
+
+    .app > div {
+        margin-left: auto;
+        background-color: white;
+        border: 1px solid #8b8b8b;
+        color: #606060;
+    }
+
+    .app strong {
+        margin-right: .5rem;
+        color: #bf861e;
+    }
+
+    .app > a {
+        display: flex;
+        align-items: center;
+        margin-left: 1rem;
+        background-color: #315fb3;
+        color: #bed5ff;
+        border-radius: 0.25rem;
+        transition: .3s ease background-color;
+    }
+
+    .app > a > i {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-left: 0.25rem;
+        width: 1.5rem;
+        height: 1.5rem;
+
+        border-radius: 50%;
+        color: #5a5454;
+        text-align: center;
+        font-style: normal;
+        font-weight: bolder;
+        font-size: .8rem;
+        background-color: white;
+    }
+
+    .app > a:active {
+        color: white;
+        background-color: #183d81;
+    }
+
+</style>
+
+<div class="user" data-template="?user">
+    <div class="user-header">
+        <a class="user-link" target="_blank" data-access="link"></a>
+        <div class="ms-1" data-access="datetime"></div>
+        <div class="ms-auto">
+            <label>Roles</label>
+            <input name="roles" spellcheck="false" autocomplete="off" data-access="input">
+            <label class="ms-1">Pass</label>
+            <input name="pass" spellcheck="false" autocomplete="off" data-access="input">
+            <span class="ms-1" data-access="userSave" data-event="saveUser">수정</span>
+        </div>
+        <span class="user-link remove-user ms-2" data-access="removeUser" data-event="removeUser">등록해제</span>
+    </div>
+    <div class="display-list" data-access="list">
+        <div class="display display-add">
+            <div>
+                <input>
+                <span class="mt-1" data-event="addDisplay">디스플레이 추가</span>
+            </div>
+        </div>
+        <div class="display" data-template="?display">
+            <div>
+                <div class="display-info">
+                    <span target="_blank" data-access="'data.index'"></span>
+                    <span data-event="deleteDisplay">Delete</span>
+                </div>
+                <a class="display-thumb" target="_blank" data-access="thumb"></a>
+            </div>
+        </div>
+    </div>
+    <div class="apps">
+        <div class="select-apps">
+            <select class="app-list" data-access="select"></select>
+            <div></div>
+        </div>
+        <div class="register-apps" data-access="apps"></div>
+    </div>
+</div>
+
+<div class="app" data-template="?app">
+    <div data-access="path"></div>
+    <a data-access="refresh" data-event="updateContent">컨텐츠 갱신 <i>R</i></a>
+    <a data-access="reload" data-event="reloadDisplay">화면갱신 <i>V</i></a>
+</div>
+<!-- ************************************** ▲ 추가 요소 ▲ ************************************** -->
+
+
+<script src="/dist/lib/js/js-base.js"></script>
+
+
+<!-- ************************************** ▼ 추가 요소 ▼ ************************************** -->
+<script src="/dist/js-boosteel.js"></script>
+<script>
+
+
+    window.Explorer = (function ($User) {
+
+        const
+            resolve = Promise.resolve(),
+            [$customContainer] = JS.selector('custom-container'),
+
+            Display = class extends JS.Template {
+
+                apply() {
+                    const {element, data: {index, root, path, name, user, content}} = this;
+
+                    element.setAttribute('data-index', index);
+
+                    JS.elementsMap(this.element, 'data-access', {
+                        data: this.data,
+                        thumb(ele) {
+                            ele.href = ['/v', user, index].join('/');
+                            if (!content) return;
+                            if (/image/i.test(content.mediaType))
+                                ele.innerHTML = JS.replace('<img src="{0}">', [[root, path, name].join('/')]);
+                            else if (/html/i.test(content.mediaType))
+                                ele.textContent = content.root + '/' + name;
+                        },
+                    });
+                    return this;
+                }
+            },
+            $user = new class User extends JS.Template {
+
+                constructor() {
+                    super();
+                    const select = this.element.getElementsByTagName('select')[0],
+                        appView = select.nextElementSibling;
+                    select.addEventListener('input', () => {
+                        const data = this.apps[select.value];
+                        if (data) {
+                            appView.innerHTML = JS.replace('<pre>{0}</pre><span data-app-name="{1}" data-event="addApp">Register</span>',
+                                [data.meta, data.name])
+                        } else appView.innerHTML = '';
+                    });
+                }
+
+                init(name) {
+                    const {element} = this;
+                    return ADMIN.getUserInfo(name).then(values => {
+                        const
+                            $user = this,
+                            [userInfo, userContentMap] = values,
+                            {apps, displayInfo, userDetail} = userContentMap || {apps: []};
+                            //appNames = apps.map(app => app.split('/')[1]);
+
+                        element.setAttribute('data-name', name);
+
+                        JS.elementsMap(element, 'data-access', {
+                            removeUser(ele) {
+                                ele.innerHTML = '<strong>' + name + '</strong> 삭제';
+                            },
+                            datetime(ele) {
+                                if (userInfo) {
+                                    ele.textContent = 'update : ' + JS.datetime(userInfo.updatetime, 'yyyy-MM-dd(E) HH:mm');
+                                } else ele.textContent = '';
+                            },
+                            link(link) {
+                                if (!userInfo) {
+                                    link.href = '';
+                                    link.textContent = name;
+                                    link.removeAttribute('data-removal');
+                                }
+                                if (userInfo) {
+                                    link.setAttribute('data-removal', userInfo.removal);
+                                    link.href = '/admin/' + name;
+                                    link.textContent = name;
+                                }
+
+                            },
+
+                            list(ele) {
+                                const adder = ele.firstElementChild;
+                                ele.textContent = '';
+                                ele.appendChild(adder);
+
+                                for (let p in displayInfo) {
+                                    const display = displayInfo[p];
+                                    ele.appendChild(new Display(display).apply().element);
+                                }
+                            },
+                            input(ele) {
+                                if (userInfo) ele.value = userInfo[ele.name];
+                                else ele.value = '';
+
+                            },
+                            userSave(ele) {
+                                if (!userInfo) {
+                                    ele.textContent = '생성';
+                                    element.setAttribute('data-flag', '0');
+                                } else {
+                                    ele.textContent = '저장';
+                                    element.setAttribute('data-flag', '1');
+                                }
+                            },
+                            /*apps(ele) {
+                                ele.innerHTML = appNames.map(name =>
+                                    JS.replace('<div data-app-name="{0}"><strong>{0}</strong>' +
+                                        '<span data-event="removeApp">×</span></div>', [name])).join('');
+                            },*/
+                            /*select(ele) {
+
+                                ele.nextElementSibling.textContent = '';
+
+                                ADMIN.getAppList().then(data => {
+                                    let array = [''],
+                                        map = $user.apps = {},
+                                        size = 0;
+                                    data.filter(({name}) => appNames.indexOf(name) === -1).forEach((data) => {
+                                        size++;
+                                        map[data.name] = data;
+                                        array.push(JS.replace('<option value="{0}">{0}</option>', [data.name]));
+                                    });
+                                    array[0] = '<option value="">앱 선택 (' + size + ')</option>'
+
+                                    ele.innerHTML = array.join('');
+                                });
+                            }*/
+                        });
+                        return this;
+                    })
+                }
+
+                appendTo() {
+                    $customContainer.appendChild(this.element);
+                }
+            },
+            $app = new class App extends JS.Template {
+
+                paths
+                fileCheck = 0
+
+                isActive() {
+                    return !!this.element.parentElement;
+                }
+
+                init(paths, files) {
+                    this.paths = paths;
+                    this.fileCheck = this.check(files);
+                    paths.root === 'apps' ? this.publicApp(paths) : this.personalApp(paths);
+                    return this;
+                }
+
+                check(files) {
+                    let i = 0;
+                    'index.html admin.html $meta.txt'.split(' ').forEach(file => files.indexOf(file) !== -1 || i++);
+                    return i;
+                }
+
+                publicApp({root, path, name}) {
+                    const {element} = this;
+                    ADMIN.getRegisteredList({path: path, name: name}).then(([registered, userNameList]) => {
+                        element.setAttribute('data-register', registered);
+                        element.setAttribute('data-path', [root, path, name].join('/'));
+                        JS.elementsMap(element, 'data-access', {
+                            path(ele) {
+                                ele.innerHTML = JS.replace('<strong>{0}</strong><span> {1} ({2})</span>',
+                                    [root, [path, name].join('/'), userNameList.length]);
+                            }
+                        });
+                    })
+                }
+
+                personalApp({root, path, name}) {
+                    const {element} = this;
+                    JS.elementsMap(element, 'data-access', {
+                        path(ele) {
+                            ele.innerHTML = JS.replace('<strong>{0}</strong><span> {1}</span>',
+                                [root, [path, name].join('/')]);
+                        }
+                    });
+                }
+
+                appendTo() {
+                    $customContainer.appendChild(this.element);
+                }
+            },
+            handlers = {
+
+                // 디스플레이 추가
+                addDisplay({target, name}) {
+                    const input = target.previousElementSibling,
+                        index = input.value.trim();
+                    if (index) {
+                        ADMIN.createDisplay(name, index)
+                            .then(() => {
+                                input.value = '';
+                                $user.init(name);
+                            })
+                    }
+                },
+
+                // 디스플레이 삭제
+                deleteDisplay({index, name}) {
+                    if (confirm(index + '\n 삭제하시겠습니까?'))
+                        ADMIN.deleteDisplay(name, index).then(() => $user.init(name))
+                },
+
+                saveUser({target, flag, name}) {
+                    const {roles, pass} = JS.elementsMap(target.parentElement, 'name');
+                    if (pass.value)
+                        ADMIN.createUser(name, roles.value, pass.value, flag).then(() => $user.init(name));
+                },
+
+                removeUser({target, name}) {
+                    if (confirm(name + '\n 삭제하겠습니까?')) {
+                        ADMIN.deleteUser(name).then(() => $user.init(name))
+                    }
+                },
+
+                addApp({name, appName}) {
+                    ADMIN.addApp({root: 'apps', path: 'html', name: appName, user: name}).then(() => $user.init(name));
+                },
+
+                removeApp({name, appName}) {
+                    if (confirm(name + '의 ' + appName + ' 앱을 삭제하시겠습니까?')) {
+                        ADMIN.removeApp({root: 'apps', path: 'html', name: appName, user: name})
+                            .then(() => ADMIN.reloadByContent({root: 'apps', path: 'html', name: appName, user: name}))
+                            .then(() => $user.init(name))
+                    }
+                },
+
+                updateContent({$template}) {
+                    return ADMIN.updateContent($template.paths)
+                },
+
+                reloadDisplay({$template: {paths}}) {
+                    return ADMIN.reloadByContent(paths)
+                }
+            };
+
+        JS.addEvent(handlers);
+
+
+        return {
+
+            // 파일목록 열릴때
+            files(path, files) {
+                const exec = /.*\/contents\/([^\/]+)\/(.*)$/.exec(path);
+                if (exec) {
+                    let [, root, subs] = exec,
+                        paths = subs.split('/');
+
+                    // user 폴더
+                    /*if (paths.length === 1) {
+                        if (root === 'users')
+                            return $user.init(paths[0]).then(() => $user.appendTo());
+                    }*/
+                    // app 폴더
+                    if (paths.length === 2) {
+                        $app.init({root: root, path: paths[0], name: paths[1]}, files).appendTo();
+                    }
+                }
+                return resolve;
+            },
+            upload(path, filenames) {
+
+                if ($app.isActive()) {
+                    const data = {$template: $app};
+                    if ($app.check(filenames)) {
+                        handlers.updateContent(data).then(() => {
+                            if (filenames.indexOf('index.html') !== -1) {
+                                console.log('reloadDisplay');
+                                handlers.reloadDisplay(data);
+                            }
+                        });
+                    }
+
+                }
+
+            },
+            deleteFile(path, filename) {
+
+                if ($app.isActive()) {
+                    const data = {$template: $app};
+                    if ($app.check([filename])) {
+                        console.log('updateContent');
+                        handlers.updateContent(data).then(() => {
+                            if (filename === 'index.html') {
+                                handlers.reloadDisplay(data);
+                            }
+                        });
+                    }
+
+                }
+            },
+            deleteDir(path) {
+                console.log('deleteDir', path)
+            }
+        };
+
+    })();
+
+
+</script>
+<!-- ************************************** ▲ 추가 요소 ▲ ************************************** -->
+
+
+<!-- ************************************** ▼ static Explorer Script ▼ ************************************** -->
+<script>
+
+    if (!window.Explorer) {
+        window.Explorer = {};
+    }
+
+    if (!window.Explorer.files) {
+        const resolve = Promise.resolve();
+        window.Explorer.files = () => resolve;
+    }
+
+    if (!window.Explorer.upload) {
+        window.Explorer.upload = (a) => a;
+    }
+
+
+
+    (function (Explorer) {
+
+
+        function $init(search, {root}, $map = {}, $current) {
+
+            const
+
+                [$style, $pop, $brand, $files, $links, $body, $customContainer] = JS.selector('style pop brand .files links .body custom-container'),
+                {$create} = JS.$elements,
+
+                __split = (path) => {
+                    const i = path.lastIndexOf('/');
+                    return [path.slice(0, i), path.slice(i + 1)];
+                },
+
+                _appendChilds = (ele, array, handler) => {
+                    const frag = document.createDocumentFragment();
+                    forEach.call(array, (v) => frag.appendChild(handler(v)));
+                    ele.appendChild(frag);
+                    return ele;
+                },
+
+                $fetch = {
+                    read(body) {
+                        return JS.fetch('POST:/explorer/read', body)
+                            .then(res => res.json())
+                            .then(([data]) => data);
+                    }
+                },
+
+                Dir = class extends JS.Template {
+
+
+                    setData(data) {
+                        super.setData(data);
+
+                        const {name, path} = data;
+                        if (/^[$!]/.test(name))
+                            this.element.firstElementChild.setAttribute('data-hidden', 'true');
+                        $map[path] = this;
+                        this.depth = this.totototo = path.split('/').length;
+                        console.log(data);
+                    }
+
+                    sub() {
+                        return $fetch.read({path: this.data.path, directories: true}).then(values => {
+                            const div = this.element.firstElementChild.lastElementChild;    // <div>
+                            div.textContent = '';
+                            if (values) {
+                                _appendChilds(div, values.directories, dir => new Dir(dir).apply().element);
+                            }
+                            return this.apply().toggle(true);
+                        })
+                    }
+
+                    files() {
+
+                        return $fetch.read({path: this.data.path, files: true}).then((data) => {
+
+                            $customContainer.textContent = $files.textContent = '';
+
+                            const {files, path} = data,
+                                links = path.split('/');
+
+                            return Explorer.files(path, files.map(({filename}) => filename)).then(() => {
+
+                                _appendChilds($files, files, file => new File(file).apply().element);
+
+                                // 세부 링크 작성
+                                $links.innerHTML = links.map((path, i) => {
+                                    const newRoot = links.slice(0, i + 1).join('/');
+                                    return JS.replace('<a href="?{1}" target="_parent">{0}</a>',
+                                        [path, encodeURI(search.replace(/root=[^&]+/, 'root=' + newRoot))]);
+                                }).join('<span>/</span>');
+
+                                $style.innerText = 'li[data-path="' + path + '"] > .dir-name strong { color: #ffd640; }';
+                                $current = this;
+
+                                if (!this.isOpen()) this.sub();
+
+                                return files;
+                            });
+
+                        })
+                    }
+
+                    isOpen() {
+                        const li = this.element.firstElementChild;
+                        return li.dataset.open === 'true';
+                    }
+
+                    toggle(flag) {
+                        const li = this.element.firstElementChild;
+                        li.setAttribute('data-open', flag == null ? !this.isOpen() : flag);
+                        return this;
+                    }
+
+                },
+                File = class extends JS.Template {
+                    thumb(ele) {
+                        const {mediaType, path, type} = this.data,
+                            src = '/disc/' + path.replace(/^\/+/, '');
+                        ele.textContent = type;
+                        if (mediaType) {
+                            if (/image/i.test(mediaType)) {
+                                //ele.innerHTML = JS.replace('<img src="{0}">', [encodeURI(src)]);
+                            }
+                            if (/video/i.test(mediaType)) {
+                                ele.innerHTML = JS.replace('<video preload="metadata"><source src="{0}" type="video/mp4"></video>', [encodeURI(src)]);
+                            }
+                        }
+                    }
+                },
+                $txt = new class Txt extends JS.Template {
+                    input
+                    textarea
+
+                    constructor() {
+                        super();
+                        $pop.textContent = '';
+                        this.input = this.element.getElementsByTagName('input')[0];
+                        this.textarea = this.element.getElementsByTagName('textarea')[0];
+                    }
+
+                    open(file, text) {
+                        if (file) {
+                            this.input.value = file.data.filename;
+                            this.textarea.value = text;
+                        } else {
+                            this.input.value = this.textarea.value = '';
+                        }
+                        $pop.appendChild(this.element);
+                        this.input.focus();
+                        return this;
+                    }
+
+                    save() {
+                        const name = this.input.value.trim(),
+                            text = this.textarea.value;
+                        if (name) {
+                            JS.fetch('POST:/explorer/writer', {path: $current.data.path + '/' + name, body: text})
+                                .then(res => res.text())
+                                .then(() => {
+                                    this.remove();
+                                    $current.files().then(() => Explorer.upload($current.data.path, [name]))
+
+                                });
+                        }
+                    }
+
+                },
+
+                ctrl = {
+                    sub({$template}) {
+                        if ($template.isOpen()) $template.toggle();
+                        else {
+                            $template.sub();
+                        }
+                    },
+                    select({$template}) {
+                        $template.files();
+                    },
+
+                    createInput({target}) {
+                        const parent = target.parentElement;
+                        parent.parentElement.insertBefore($create.element, parent.nextSibling);
+                    },
+                    cancelInput() {
+                        const {element} = $create;
+                        element.parentElement.removeChild(element);
+                    },
+                    createDir({target, $template}) {
+                        const input = target.parentElement.getElementsByTagName('input')[0],
+                            value = input.value.trim();
+                        if (value) {
+                            JS.fetch('POST:/explorer/create', {path: $template.data.path + '/' + value})
+                                .then(res => res.json())
+                                .then(r => {
+                                    if (r) {
+                                        $template.sub();
+                                        input.value = '';
+                                        this.cancelInput();
+                                    }
+                                });
+                        }
+                    },
+                    removeDir({$template: $target, force}) {
+                        $target.element.firstElementChild.classList.add('delete');
+                        setTimeout(() => {
+                            if (force || confirm('삭제하시겠습니까?')) {
+                                JS.fetch('POST:/explorer/delete', {path: $target.data.path})
+                                    .then(res => res.json())
+                                    .then(r => {
+                                        if (r) {
+                                            const {path} = $target.data,
+                                                {path: currentPath} = $current.data;
+                                            if (path === currentPath || path.slice(0, path.lastIndexOf('/')) === currentPath) {
+                                                Explorer.$parent(path);
+                                            }
+                                            Explorer.deleteDir($target.data.path);
+                                            JS.Template.$get($target.element.parentElement).sub();
+                                        }
+                                    });
+                            } else $target.element.firstElementChild.classList.remove('delete');
+                        }, 100);
+
+                    },
+
+                    fileOpen({$template}) {
+                        if (!$template) {
+                            $txt.open();
+                        } else if (/html|txt/i.test($template.data.type)) {
+                            JS.fetch('POST:/explorer/reader', {path: $template.data.path})
+                                .then(res => res.text())
+                                .then(text => $txt.open($template, text));
+                        }
+                    },
+                    txtSave() {
+                        $txt.save();
+                    },
+                    txtCancel() {
+                        $txt.remove();
+                    },
+
+                    deleteFile({$template}) {
+                        const {element} = $template;
+                        element.classList.add('delete');
+                        setTimeout(() => {
+                            if (confirm('삭제하시겠습니까?')) {
+                                JS.fetch('POST:/explorer/delete', {path: $template.data.path})
+                                    .then(res => res.json())
+                                    .then(() => $template.remove())
+                                    .then(() => {
+                                        const [path, filename] = __split($template.data.path);
+                                        Explorer.deleteFile(path, filename);
+                                    })
+                            } else element.classList.remove('delete');
+                        }, 100);
+                    },
+
+
+                    download({$template}) {
+                        const anchor = document.createElement('a'),
+                            {path, name, type} = $template.data;
+                        anchor.href = '/disc/' + path;
+                        anchor.download = name + '.' + type;
+                        anchor.click();
+                    },
+
+                    upload() {
+                        JS.input((files) => {
+                            const formData = new FormData(),
+                                names = map.call(files, ({name}) => name);
+
+                            formData.append('config', JS.bodyBlob({path: $current.data.path}));
+                            forEach.call(files, file => formData.append('files', file));
+                            JS.fetch('PUT:/explorer/upload', formData)
+                                .then(res => res.json())
+                                .then(() => $current.files())
+                                .then(files => Explorer.upload($current.data.path, names))
+                        }, {multiple: true})
+                    }
+                };
+
+            $fetch.read({path: root, sub: true}).then(data => {
+                if (data) new Dir(data).appendTo().sub().then(obj => obj.files());
+            });
+
+            JS.addEvent(ctrl);
+
+            $brand.textContent = root;
+
+            Explorer.$refresh = () => {
+                if ($current) $current.sub().then(() => $current.files());
+            };
+
+            Explorer.$parent = (currentPath) => {
+                let $target = $map[currentPath];
+                if ($target) {
+                    const {path} = $target.data,
+                        $parent = $map[path.slice(0, path.lastIndexOf('/'))];
+                    $parent && $parent.sub().then(() => $parent.files());
+                }
+            };
+
+            Explorer.$delete = (currentPath) => {
+                const $template = $map[currentPath];
+                if ($template) ctrl.removeDir({$template: $template, force: true});
+            }
+
+        };
+
+        (function (search, map = {}) {
+            search.split('&').forEach(values => {
+                const [key, value] = values.split('=');
+                map[key] = decodeURI(value);
+            });
+            if (map.root) $init(search, map);
+        })(location.search.slice(1));
+
+
+    })(window.Explorer);
+
+</script>
+<!-- ************************************** ▲ static Explorer Script ▲ ************************************** -->
+
+</body>
+</html>

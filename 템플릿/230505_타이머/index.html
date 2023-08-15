@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&display=swap" rel="stylesheet">
+    <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+    <link href="/dist/admin-app.css" rel="stylesheet" type="text/css">
+    <link href="/dist/app-util.css" rel="stylesheet" type="text/css">
+    <style>
+
+        pre {
+            margin: 0;
+        }
+        html {
+            font-size: 1vw;
+        }
+        html, body, main {
+            height: 100%;
+            background-color: black;
+        }
+
+        body {
+            color: #ddd;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+
+        .header {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        #brand {
+            margin-right: auto;
+            font-size: 3rem;
+        }
+
+
+        /* ************** ▼ 메세지가 없을 경우 ▼ ************** */
+        body[data-alert="true"] [u], body[data-alert="false"] [data-alert="false"] {
+            display: none !important;
+        }
+
+        body[data-alert="false"] .header {
+            display: block;
+            text-align: center;
+        }
+
+        body[data-alert="false"] #brand {
+            margin: 0 0 1rem;
+        }
+        body[data-alert="false"] #time {
+            margin-left: auto;
+        }
+        body[data-alert="false"] [clock] {
+            flex-direction: column;
+            font-size: 12rem;
+        }
+        body[data-alert="false"] [clock] > li:first-child {
+            margin-bottom: .25em;
+        }
+        body[data-alert="false"] [clock] > li:last-child {
+            margin-left: -.8em;
+        }
+
+        /* ************** ▲ 메세지가 없을 경우 ▲ ************** */
+
+
+        #timer {
+            flex: 1 1 auto;
+            display: flex;
+            width: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            background-color: black;
+            border-top: 1px solid #6a6a6a;
+
+        }
+
+        #timer[data-count="false"] #count {
+            display: none;
+        }
+
+        #count {
+            font-size: 1em;
+            color: #edb720;
+        }
+
+        #title {
+            font-size: .7em;
+        }
+
+        pre {
+            font-weight: bolder;
+            font-size: .5em;
+            color: #d6ff57;
+        }
+
+
+        @media (orientation: portrait) {
+            /* 세로 모드일 때 적용할 CSS */
+            #timer  {
+                font-size: 8vh;
+            }
+        }
+
+        @media (orientation: landscape) {
+            /* 가로 모드일 때 적용할 CSS */
+            #timer  {
+                font-size: 8vw;
+            }
+        }
+
+    </style>
+</head>
+<body data-alert="false">
+
+<main>
+    <div class="header">
+        <div id="brand">Timer</div>
+        <div id="time"></div>
+    </div>
+    <div id="timer" data-alert="false">
+        <div><strong id="count"></strong></div>
+        <div><strong id="title"></strong></div>
+        <pre id="text"></pre>
+    </div>
+</main>
+
+
+<script src="/dist/lib/js/js-base.js"></script>
+<script src="/dist/js-boosteel-app.js"></script>
+<script src="./js.js?3"></script>
+<script>
+
+
+    function $init(values, currentValue) {
+
+        const
+            {body} = document,
+            [$time, $timer, $count, $title, $text] = JS.selector('time timer count title text'),
+            _24h = 24 * 60 * 60,
+
+            _to_num = (h, m, s = 0) => (h * 60 * 60) + (m * 60) + s,
+            _date_to_num = (date) => _to_num(date.getHours(), date.getMinutes(), date.getSeconds()),
+            _num_to_string = (time) => {
+                const result = [];
+                result[2] = time % 60;
+                time -= result[2];
+                result[1] = time % (60 * 60) / 60;
+                time -= result[1] * 60;
+                result[0] = time / (60 * 60);
+                return result;
+            },
+
+            // 남은 시간 계산
+            _leftCount = (time) => {
+                return _num_to_string(time).map(v => ('0' + v).slice(-2)).join(':');
+            },
+            leftTime = ({start, end}, currentTime) => {
+                if (start > end && currentTime > start) {
+                    return _leftCount(_24h - currentTime + end);
+                }
+
+                return _leftCount(end - currentTime);
+            },
+
+            match = (values, time) => {
+                for (let i = 0, l = values.length; i < l; i++) {
+                    let {start, end} = values[i];
+                    if (start > end) {   // ex) 23:00 ~ 02:00
+                        if (!(end < time && time < start)) return values[i];
+                    }
+                    if (start <= time && end >= time) return values[i];
+                }
+                return null;
+            },
+
+            handler = (currentTime) => {
+                if (currentValue && currentValue.end > currentTime) {
+                    $count.textContent = leftTime(currentValue, currentTime);
+                    return;
+                }
+                const value = currentValue = match(values, currentTime);
+                if (!value) {
+                    body.setAttribute('data-alert', 'false')
+                    $text.textContent = $title.textContent = '';
+                } else {
+                    body.setAttribute('data-alert', 'true')
+                    $timer.setAttribute('data-count', value.count ? 'true' : 'false');  // 카운트다운 없이 그냥 내용만
+                    $title.textContent = value.title;
+                    $text.textContent = value.text;
+                    $count.textContent = leftTime(currentValue, currentTime);
+                }
+            };
+
+
+        (function (interval) {
+            const loop = () => {
+                const date = new Date();
+                handler(_date_to_num(date));
+                $time.innerHTML = JS.datetime(new Date(),
+                    '<ul clock>' +
+                    '<li><span>yyyy.<strong>M.d</strong><small>(E)</small></span></li>' +
+                    '<li><strong title="ap">h</strong><small>:</small><strong>mm</strong>' +
+                    '<small u>:</small><strong u>ss</strong></li>' +
+                    '</ul>');
+                setTimeout(loop, interval);
+            }
+            loop();
+        })(1000);
+    }
+
+    APP.getJSON().then(data => {
+        if (data) $init(Timer.parse(data.lines));
+        else $init([]);
+    });
+
+</script>
+</body>
+</html>

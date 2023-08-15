@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            padding: 5rem;
+            margin: 0;
+            background-color: #ddd;
+        }
+
+        [contenteditable="true"] {
+            overflow-y: auto;
+            padding: 1.5rem;
+            width: 100%;
+            height: 20rem;
+            white-space: break-spaces;
+            background-color: white;
+            outline: 0 !important;
+        }
+
+        [contenteditable="true"] > div:first-child {
+        }
+
+        #editor > .error {
+            color: red;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="editor" contenteditable="true" spellcheck="false"></div>
+
+<script>
+
+    const selection = window.getSelection()
+    /*Selection{
+        anchorNode: node,
+        anchorOffset: number,
+        baseNode: node,
+        baseOffset: number,
+        extentNode: node,
+        extentOffset: number,
+        focusNode: node,
+        focusOffset: number,
+        isCollapsed: boolean,
+        rangeCount: number,
+        type: string
+    }*/
+
+    const
+        {forEach} = Array.prototype,
+        $editor = document.getElementById('editor'),
+        _caret = document.createTextNode(''),
+
+        _check = () => {
+            let child = $editor.firstChild; // 첫번째줄은 건너띤다
+            while(child = child.nextSibling) {
+                if(/\d+/.test(child.textContent))
+                    child.className = 'error'
+                else child.className = '';
+            }
+        },
+
+        $readyEditor = (editor) => {
+            editor.innerHTML = '<div>　<br></div><div><br></div>'
+            // ① 첫줄은 <div>가 안 먹고, TextNode처리되므로 첫줄은 못 쓰게 막는다.
+            editor.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && /^　\s{3}$/.test(editor.innerText)) {
+                    e.preventDefault();
+                }
+            });
+
+            // 붙여넣기
+            editor.addEventListener('paste', function(e) {
+                e.preventDefault();
+                let textData = e.clipboardData.getData('Text');
+                textData = textData.split('\n').map(line => '<div>' + line + '</div>').join('');
+                window.document.execCommand('insertHTML', false,  textData);
+                _check();
+            })
+
+            // ② 커서가 2번째 줄로 가도록 한다.
+            const range = document.createRange();
+            range.selectNode(editor.children[1]);
+            window.getSelection().addRange(range);
+        };
+
+    $readyEditor($editor);
+    $editor.addEventListener('input', _check)
+
+</script>
+</body>
+</html>
