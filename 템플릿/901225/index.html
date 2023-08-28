@@ -30,6 +30,42 @@
 
         }
 
+        .container {
+            width: 900px;
+            position: relative;
+            display: flex;
+            background-color: white !important;
+        }
+
+        .container > * {
+            position: absolute;
+            display: block;
+            top: 0;
+            width: 100%;
+
+            transition: .3s ease top;
+        }
+
+        strong {
+            padding: 2rem;
+            background-color: red;
+        }
+
+        small {
+            padding: 1rem;
+            background-color: blue;
+        }
+
+        div {
+            padding: 3rem;
+            background-color: orange;
+        }
+
+        span {
+            padding: 1rem;
+            background-color: black;
+        }
+
     </style>
 
     <style id="style"></style>
@@ -37,20 +73,51 @@
 </head>
 <body tabindex="-1">
 
-
+<div class="container">
+    <strong data-index="0">asdfasdfasdfasdfasdf</strong>
+    <small data-index="5">asdfasdfasdfasdfasdf</small>
+    <div data-index="2">asdfasdfasdfasdfasdf</div>
+    <span data-index="3">asdfasdfsdfasdfasdfasdfasdf</span>
+</div>
 
 
 <script>
 
-    document.addEventListener('click', () => {
-         document.body.innerHTML = '<iframe id="iframe" src="./iframe.html" scrolling="off"></iframe>';
-    });
-    document.addEventListener('keyup', (e) => {
-        console.log('parent', e.key)
+    const [container] = document.getElementsByClassName('container'),
+
+        // 어트리뷰트 이용방식
+        render = (from, to) => {
+            let top = 0, index = 0, array = [];
+            // data-index에 맞춰서 정렬
+            Array.prototype.forEach.call(container.children, (e) => {
+                e.hasAttribute('data-index') && (array[e.getAttribute('data-index')] = e);
+            });
+
+            if (typeof from === 'number' && typeof to === 'number') {
+                const item = array.splice(from, 1)[0];
+                array.splice(to, 0, item);
+            }
+
+            array.forEach((e, i) => {
+                if (e) {
+                    e.style.top = top + 'px';
+                    e.style.zIndex = top;
+                    top += e.offsetHeight;
+                    e.setAttribute('data-index', index++);
+                }
+            })
+        };
+
+    render();
+
+    container.addEventListener('click', ({target}) => {
+        let index = target.dataset.index;
+        if (index) {
+            index = parseInt(index);
+            if (index > 0) render(index, index - 1);
+        }
     })
 
-
-    document.body.focus();
 </script>
 </body>
 </html>

@@ -9,19 +9,32 @@ body {
     background-color: #333;
 }
 
-body:after {
+body:after, body:before {
     position: fixed;
     top: 0;
     right: 0;
+    transition: 1s ease right;
+    overflow: hidden;
+    z-index: 9999;
+}
+
+body:before {
     bottom: 0;
     left: 0;
-    content: '저장 중..';
-    z-index: 9999;
-    opacity: .8;
+    color: transparent;
+}
+
+body:after {
+    padding: 1rem;
     background-color: black;
-    display: none;
-    justify-content: center;
-    align-items: center;
+    text-align: center;
+    white-space: pre-wrap;
+    color: white;
+    border-left: 6px solid #e19c02;
+}
+
+body[data-alert]:before, body[data-alert]:after {
+    content: attr(data-alert);
 }
 
 body.saving:after {
@@ -42,9 +55,20 @@ nav {
     color: #eee;
 }
 
-.brand {
+.home {
+    color: #bf9537 !important;
+    font-weight: bolder;
+}
+
+.home + :not(.referer) {
+    margin-left: auto;
+}
+
+.referer {
+    font-size: .9rem;
+    margin-left: .5rem;
+    color: #7c7c7c;
     margin-right: auto;
-    color: #ddd !important;
 }
 
 .nav-btn {

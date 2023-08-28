@@ -6,7 +6,7 @@
 
     <link href="/dist/fonts/SpoqaHanSansNeo.css" rel="stylesheet" type="text/css">
     <link href="/dist/lib/css/reboot.css" rel="stylesheet" type="text/css">
-    <link href="/dist/src/app-admin.css" rel="stylesheet" type="text/css">
+    <link href="/dist/app-admin.css" rel="stylesheet" type="text/css">
 
     <style>
         html, body, iframe {
@@ -16,17 +16,47 @@
             height: 100%;
         }
 
+        .container {
+            margin: 0 auto;
+            padding: 2rem;
+            color: #ccc;
+        }
+
         iframe {
             overflow: hidden;
             border: 0;
         }
 
+        .key {
+            margin-bottom: .5rem;
+            text-align: right;
+        }
+
+        #result {
+            margin-top: 1rem;
+            height: 50vh;
+        }
+
 
         input {
-            margin: 2rem;
+            width: 100%;
             padding: 1rem;
             font-size: 1.2rem;
             outline: 0;
+        }
+
+        small {
+            color: #888;
+        }
+        strong {
+            margin-left: .5rem;
+        }
+
+
+        @media (min-width: 960px) {
+            .container {
+                width: 960px;
+            }
         }
     </style>
 </head>
@@ -34,14 +64,19 @@
 
 
 <nav>
-    <a href="/admin" target="_parent"><strong>유튜브</strong></a>
+    <a class="home">유튜브</a>
+    <span class="referer"></span>
     <div class="nav-buttons ms-auto">
         <span data-event="save">Save</span>
     </div>
 </nav>
 
 <div class="container">
-    <input> <strong id="key"></strong>
+    <div class="key">
+        <small>video key : </small>
+        <strong id="key"></strong>
+    </div>
+    <input autocomplete="off" placeholder="유튜브 주소를 '붙여넣기' 하세요">
     <div id="result"></div>
 </div>
 
@@ -61,16 +96,16 @@
             key = document.getElementById('key'),
             regexp = [/^([^\s"'&=?]+)$/, /be\/([^\s"'&=?]+)/, /embed\/([^\s"'&=?]+)/, /v=([^\s"'&=?]+)/, /shorts\/([^\s"'&=?]+)/];
 
-        if(!$data.value) $data.value = {};
-        if($data.value.v) key.textContent = $data.value.v;
+        if (!$data.value) $data.value = {};
+        if ($data.value.v) key.textContent = $data.value.v;
 
         JS.addEvent({
             save() {
                 $data.value = {v: videoId};
                 APP.setJSON($data)
                     .then(() => {
-                    ADMIN.reloadDisplay({index: index, user: user})
-                })
+                        ADMIN.reloadDisplay({index: index, user: user})
+                    })
             }
         });
 
@@ -100,7 +135,7 @@
 
             } else {
                 videoId = null;
-                result.textContent = key.textContent ='';
+                result.textContent = key.textContent = '';
             }
 
         });
@@ -109,9 +144,8 @@
 
 
     APP.getJSON().then(data => {
-       $init(data || {});
+        $init(data || {});
     });
-
 
 
 </script>

@@ -94,5 +94,13 @@ const APP = (function () {
             }
         };
 
+    const [home] = document.getElementsByClassName('home'),
+        [referer] = document.getElementsByClassName('referer');
+    if(home) {
+        home.href = '/admin/' + user;
+        home.target = '_parent';
+    }
+    if(referer) referer.textContent = user + ' / ' + index;
+
     return $;
 })();

@@ -62,7 +62,7 @@
             if (/image/i.test(mediaType)) {
                 $container.innerHTML = '<iframe scrolling="no" src="/dist/viewer/img.html?src=' + uri + '"></iframe>'
             } else {
-                $container.innerHTML = '<iframe scrolling="no" src="/dist/viewer/video.html?src=' + uri + '"></iframe>';
+                $container.innerHTML = '<iframe scrolling="no" src="' + uri + '"></iframe>';
             }
         }
     })

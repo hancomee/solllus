@@ -46,6 +46,11 @@
             font-size: .85rem;
         }
 
+        #log[title]:before {
+            margin-left: .5rem;
+            content: attr(title);
+        }
+
     </style>
     <style id="style"></style>
 </head>
@@ -57,9 +62,13 @@
 <script>
 
     let
+
+        $player,
+        $count = 0,     // 영상 반복횟수
         $size,
         $log = document.getElementById('log'),
-        $play = ({v: videoId}) => {
+
+        $play = ({v: videoId, once}) => {
 
             // API :: https://developers.google.com/youtube/iframe_api_reference?hl=ko
             let
@@ -73,21 +82,22 @@
                 },
 
                 // ?초간 재생시간에 변화가 없을 경우, 멈췄다고 판단하고 강제 새로고침한다.
-                watcherDuration = 60,   // 초단위
-                _watcher = (function (setTimeKey, player, currentTime) {
+                watcherDuration = 1,   // 초단위
+                _z = (v, c) => ('00000' + v).slice(c * -1),
+                _watcher = (function (setTimeKey, player,
+                                      currentTime = -1) {
                     const
-                        loop = () => {
-                            if (player.getCurrentTime() === currentTime) {
-                                location.reload();
-                            }
-                            currentTime = player.getCurrentTime();
-                            setTimeKey = setTimeout(loop, watcherDuration * 1000);
-                        }
-                    return ($player) => {
+                        _loop = () => {
+                            $log.setAttribute('title', $player.getCurrentTime());
+                            setTimeKey = setTimeout(_loop, watcherDuration * 1000);
+                        };
+
+                    // 루프모드가 아니면 와칭을 할 필요가 없다.
+                    if (once) return (a) => a;
+
+                    return () => {
                         clearTimeout(setTimeKey);
-                        if(!(player = $player)) return;
-                        currentTime = player.getCurrentTime();
-                        setTimeout(loop, watcherDuration * 1000);
+                        setTimeout(_loop, watcherDuration * 1000);
                     };
                 })(),
                 _setSize = () => {
@@ -97,9 +107,9 @@
                         iframe.height = $size.H;
                     }
                 },
-                $player,
                 handlers = {
                     // 유튜브 API 최초 로딩 후 호출
+                    // 왜 그런지 모르겠으나 크롬캐스트에서는 $player의 일부 메서드가 제대로 동작하지 않는다. ex) getCurrentTime
                     $init() {
                         $player = new YT.Player('player', {
                             videoId: videoId,
@@ -122,6 +132,8 @@
                             }
                         });
 
+                        //_watcher($player);
+
                     },
                     // 4. The API will call this function when the video player is ready.
                     onPlayerReady(e) {
@@ -133,6 +145,7 @@
                     //    The function indicates that when playing a video (state=1),
                     //    the player should play for six seconds and then stop.
                     onPlayerStateChange(e) {
+
                         document.body.focus();
 
                         /*
@@ -152,11 +165,8 @@
 
                         if (e.data === 0) {
                             _setSize();
+                            $player.setPlaybackQuality('highres');
                             $player.playVideo();
-                        }
-
-                        if (e.data === 1) {
-                            _watcher($player);
                         }
 
                         $log.textContent = $player.getPlaybackQuality();
@@ -190,15 +200,17 @@
                 // [Enter] 정지/재생
                 if (e.key === 'Enter') {
                     if (!$player.__pause) {
+                        $player.__pause = true;
                         $player.pauseVideo();
                         _watcher();
-                        $player.__pause = true;
                     } else {
-                        $player.playVideo();
+                        _watcher($player);
                         $player.__pause = false;
+                        $player.playVideo();
                     }
                 }
-            })
+            });
+
         };
 
 

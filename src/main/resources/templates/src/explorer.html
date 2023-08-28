@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>관리자</title>
+    <title>@Explorer</title>
 
     <link href="/dist/fonts/SpoqaHanSansNeo.css" rel="stylesheet" type="text/css">
     <link href="/dist/lib/css/reboot.css" rel="stylesheet">
@@ -750,132 +750,6 @@
             resolve = Promise.resolve(),
             [$customContainer] = JS.selector('custom-container'),
 
-            Display = class extends JS.Template {
-
-                apply() {
-                    const {element, data: {index, root, path, name, user, content}} = this;
-
-                    element.setAttribute('data-index', index);
-
-                    JS.elementsMap(this.element, 'data-access', {
-                        data: this.data,
-                        thumb(ele) {
-                            ele.href = ['/v', user, index].join('/');
-                            if (!content) return;
-                            if (/image/i.test(content.mediaType))
-                                ele.innerHTML = JS.replace('<img src="{0}">', [[root, path, name].join('/')]);
-                            else if (/html/i.test(content.mediaType))
-                                ele.textContent = content.root + '/' + name;
-                        },
-                    });
-                    return this;
-                }
-            },
-            $user = new class User extends JS.Template {
-
-                constructor() {
-                    super();
-                    const select = this.element.getElementsByTagName('select')[0],
-                        appView = select.nextElementSibling;
-                    select.addEventListener('input', () => {
-                        const data = this.apps[select.value];
-                        if (data) {
-                            appView.innerHTML = JS.replace('<pre>{0}</pre><span data-app-name="{1}" data-event="addApp">Register</span>',
-                                [data.meta, data.name])
-                        } else appView.innerHTML = '';
-                    });
-                }
-
-                init(name) {
-                    const {element} = this;
-                    return ADMIN.getUserInfo(name).then(values => {
-                        const
-                            $user = this,
-                            [userInfo, userContentMap] = values,
-                            {apps, displayInfo, userDetail} = userContentMap || {apps: []};
-                            //appNames = apps.map(app => app.split('/')[1]);
-
-                        element.setAttribute('data-name', name);
-
-                        JS.elementsMap(element, 'data-access', {
-                            removeUser(ele) {
-                                ele.innerHTML = '<strong>' + name + '</strong> 삭제';
-                            },
-                            datetime(ele) {
-                                if (userInfo) {
-                                    ele.textContent = 'update : ' + JS.datetime(userInfo.updatetime, 'yyyy-MM-dd(E) HH:mm');
-                                } else ele.textContent = '';
-                            },
-                            link(link) {
-                                if (!userInfo) {
-                                    link.href = '';
-                                    link.textContent = name;
-                                    link.removeAttribute('data-removal');
-                                }
-                                if (userInfo) {
-                                    link.setAttribute('data-removal', userInfo.removal);
-                                    link.href = '/admin/' + name;
-                                    link.textContent = name;
-                                }
-
-                            },
-
-                            list(ele) {
-                                const adder = ele.firstElementChild;
-                                ele.textContent = '';
-                                ele.appendChild(adder);
-
-                                for (let p in displayInfo) {
-                                    const display = displayInfo[p];
-                                    ele.appendChild(new Display(display).apply().element);
-                                }
-                            },
-                            input(ele) {
-                                if (userInfo) ele.value = userInfo[ele.name];
-                                else ele.value = '';
-
-                            },
-                            userSave(ele) {
-                                if (!userInfo) {
-                                    ele.textContent = '생성';
-                                    element.setAttribute('data-flag', '0');
-                                } else {
-                                    ele.textContent = '저장';
-                                    element.setAttribute('data-flag', '1');
-                                }
-                            },
-                            /*apps(ele) {
-                                ele.innerHTML = appNames.map(name =>
-                                    JS.replace('<div data-app-name="{0}"><strong>{0}</strong>' +
-                                        '<span data-event="removeApp">×</span></div>', [name])).join('');
-                            },*/
-                            /*select(ele) {
-
-                                ele.nextElementSibling.textContent = '';
-
-                                ADMIN.getAppList().then(data => {
-                                    let array = [''],
-                                        map = $user.apps = {},
-                                        size = 0;
-                                    data.filter(({name}) => appNames.indexOf(name) === -1).forEach((data) => {
-                                        size++;
-                                        map[data.name] = data;
-                                        array.push(JS.replace('<option value="{0}">{0}</option>', [data.name]));
-                                    });
-                                    array[0] = '<option value="">앱 선택 (' + size + ')</option>'
-
-                                    ele.innerHTML = array.join('');
-                                });
-                            }*/
-                        });
-                        return this;
-                    })
-                }
-
-                appendTo() {
-                    $customContainer.appendChild(this.element);
-                }
-            },
             $app = new class App extends JS.Template {
 
                 paths
@@ -886,9 +760,13 @@
                 }
 
                 init(paths, files) {
-                    this.paths = paths;
+                    const {root, path, name} = this.paths = paths;
                     this.fileCheck = this.check(files);
-                    paths.root === 'apps' ? this.publicApp(paths) : this.personalApp(paths);
+                    JS.elementsMap(this.element, 'data-access', {
+                        path(ele) {
+                            ele.innerHTML = JS.replace('<strong>{0}</strong><span>{1}</span>', [root, [path, name].join('/')]);
+                        }
+                    });
                     return this;
                 }
 
@@ -898,78 +776,11 @@
                     return i;
                 }
 
-                publicApp({root, path, name}) {
-                    const {element} = this;
-                    ADMIN.getRegisteredList({path: path, name: name}).then(([registered, userNameList]) => {
-                        element.setAttribute('data-register', registered);
-                        element.setAttribute('data-path', [root, path, name].join('/'));
-                        JS.elementsMap(element, 'data-access', {
-                            path(ele) {
-                                ele.innerHTML = JS.replace('<strong>{0}</strong><span> {1} ({2})</span>',
-                                    [root, [path, name].join('/'), userNameList.length]);
-                            }
-                        });
-                    })
-                }
-
-                personalApp({root, path, name}) {
-                    const {element} = this;
-                    JS.elementsMap(element, 'data-access', {
-                        path(ele) {
-                            ele.innerHTML = JS.replace('<strong>{0}</strong><span> {1}</span>',
-                                [root, [path, name].join('/')]);
-                        }
-                    });
-                }
-
                 appendTo() {
                     $customContainer.appendChild(this.element);
                 }
             },
             handlers = {
-
-                // 디스플레이 추가
-                addDisplay({target, name}) {
-                    const input = target.previousElementSibling,
-                        index = input.value.trim();
-                    if (index) {
-                        ADMIN.createDisplay(name, index)
-                            .then(() => {
-                                input.value = '';
-                                $user.init(name);
-                            })
-                    }
-                },
-
-                // 디스플레이 삭제
-                deleteDisplay({index, name}) {
-                    if (confirm(index + '\n 삭제하시겠습니까?'))
-                        ADMIN.deleteDisplay(name, index).then(() => $user.init(name))
-                },
-
-                saveUser({target, flag, name}) {
-                    const {roles, pass} = JS.elementsMap(target.parentElement, 'name');
-                    if (pass.value)
-                        ADMIN.createUser(name, roles.value, pass.value, flag).then(() => $user.init(name));
-                },
-
-                removeUser({target, name}) {
-                    if (confirm(name + '\n 삭제하겠습니까?')) {
-                        ADMIN.deleteUser(name).then(() => $user.init(name))
-                    }
-                },
-
-                addApp({name, appName}) {
-                    ADMIN.addApp({root: 'apps', path: 'html', name: appName, user: name}).then(() => $user.init(name));
-                },
-
-                removeApp({name, appName}) {
-                    if (confirm(name + '의 ' + appName + ' 앱을 삭제하시겠습니까?')) {
-                        ADMIN.removeApp({root: 'apps', path: 'html', name: appName, user: name})
-                            .then(() => ADMIN.reloadByContent({root: 'apps', path: 'html', name: appName, user: name}))
-                            .then(() => $user.init(name))
-                    }
-                },
 
                 updateContent({$template}) {
                     return ADMIN.updateContent($template.paths)
@@ -984,48 +795,36 @@
 
 
         return {
-
             // 파일목록 열릴때
             files(path, files) {
-                const exec = /.*\/contents\/([^\/]+)\/(.*)$/.exec(path);
+                const exec = /.*\/solllus\/([^\/]+)\/(.*)$/.exec(path);
                 if (exec) {
                     let [, root, subs] = exec,
-                        paths = subs.split('/');
-
-                    // user 폴더
-                    /*if (paths.length === 1) {
-                        if (root === 'users')
-                            return $user.init(paths[0]).then(() => $user.appendTo());
-                    }*/
-                    // app 폴더
-                    if (paths.length === 2) {
-                        $app.init({root: root, path: paths[0], name: paths[1]}, files).appendTo();
+                        [path, name] = subs.split('/');
+                    if (name && name[0] !== '_') {
+                        $app.init({root: root, path: path, name: name}, files).appendTo();
                     }
                 }
                 return resolve;
             },
             upload(path, filenames) {
-
-                if ($app.isActive()) {
+                // 자동업데이트
+                /*if ($app.isActive()) {
                     const data = {$template: $app};
                     if ($app.check(filenames)) {
                         handlers.updateContent(data).then(() => {
                             if (filenames.indexOf('index.html') !== -1) {
-                                console.log('reloadDisplay');
                                 handlers.reloadDisplay(data);
                             }
                         });
                     }
-
-                }
-
+                }*/
             },
             deleteFile(path, filename) {
 
                 if ($app.isActive()) {
                     const data = {$template: $app};
                     if ($app.check([filename])) {
-                        console.log('updateContent');
                         handlers.updateContent(data).then(() => {
                             if (filename === 'index.html') {
                                 handlers.reloadDisplay(data);
@@ -1062,7 +861,6 @@
     if (!window.Explorer.upload) {
         window.Explorer.upload = (a) => a;
     }
-
 
 
     (function (Explorer) {

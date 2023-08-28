@@ -5,9 +5,8 @@
     <title></title>
 
     <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
-    <link href="/dist/admin-app.css" rel="stylesheet" type="text/css">
-
-
+    <link href="/dist/lib/css/reboot.css" rel="stylesheet" type="text/css">
+    <link href="/dist/app-admin.css" rel="stylesheet" type="text/css">
 
     <style>
 
@@ -62,9 +61,11 @@
             main {
                 display: flex;
             }
+
             main > div {
                 width: 50%;
             }
+
             textarea {
                 height: 30rem;
             }
@@ -75,7 +76,8 @@
 <body class="fixed-nav-gray">
 
 <nav>
-    <a href="/admin" target="_parent"><strong>ADMIN </strong></a>
+    <a class="home">타이머</a>
+    <span class="referer"></span>
     <div class="nav-buttons">
         <span data-event="save">Save</span>
     </div>
@@ -93,7 +95,9 @@
                 <div class="list" data-count="{count}">
                     <div class="time"><strong>{_start} ~ {_end}</strong></div>
                     <div class="title">{title}</div>
-                    <div class="text"><pre>{text}</pre></div>
+                    <div class="text">
+                        <pre>{text}</pre>
+                    </div>
                 </div>
             </script>
         </div>
@@ -130,7 +134,16 @@
                 .then(() => APP.reloadByContent())
                 .then(() => alert('저장'));
         }
-    })
+    });
+
+
+    document.addEventListener('click', (e) => {
+        if (document.body.hasAttribute('data-alert'))
+            document.body.removeAttribute('data-alert');
+        else
+            document.body.setAttribute('data-alert', '뚱띠리띠띠\nasdfasdfasdf');
+
+    });
 
 
 </script>

@@ -2,6 +2,9 @@ package com.solllus.web.controller.support;
 
 import com.solllus.web.controller.domain.*;
 
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,8 +40,20 @@ public class StaticVariable {
 
     public static final <T extends ContentMap> T PROVIDER(String root, String path) {
         Map<String, T> map = PROVIDER(root);
-        if (map != null) return (T) map.get(path);
-        return null;
+        T contentMap = map.get(path);
+
+        // apps의 경우 새로운 카테고리가 생긴 경우 map을 생성한다.
+        if(contentMap == null) {
+            Path rootPath = ROOT.resolve(root).resolve(path);
+            if(Files.exists(rootPath) && root.equals("apps")) {
+                ContentMap_apps app = new ContentMap_apps(rootPath, root, path);
+                app.readAll();
+                APPS.put(path, app);
+                return (T) app;
+            }
+        }
+
+        return contentMap;
     }
 
 

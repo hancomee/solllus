@@ -14,10 +14,11 @@ public class Content {
     public String root;
     public String path;
     public String name;
-    public long time;           // lastModifiedTime :: 이 값을 기준으로 브라우저에서 새로고침을 판단한다.
+    public long time;
     public long createTime;
     public String mediaType;
 
+    public boolean hasIcon;
     public boolean hasAdmin;
     public String meta = "";        // 그밖의 데이터
 
@@ -68,6 +69,7 @@ public class Content {
         }
 
         if (Files.isDirectory(contentPath)) {
+
             // index.html이 존재하는 폴더만 대상으로 한다.
             if (!filename.startsWith("$") && !filename.startsWith("_") && Files.exists(contentPath.resolve("index.html"))) {
                 content.set(filename, attrs.lastModifiedTime().toMillis(), "text/html");
@@ -75,8 +77,11 @@ public class Content {
                 // 앱 메타 파일
                 if (Files.exists(path = contentPath.resolve("$meta.txt")))
                     content.meta = String.join("\n", Files.readAllLines(path));
+                content.hasIcon = Files.exists(contentPath.resolve("icon.png"));
                 list.put(content.name, content);
-            } else list.remove(filename);
+            }
+            // 조건이 안되면 리스트에서 삭제해버린다.
+            else list.remove(filename);
         }
         // 일반 미디어파일
         else {

@@ -54,25 +54,14 @@ public class AdminController {
 
         this.db = new DB(nativeDB);
 
-        Set<String> registerUsers = db.users();
 
-        // DB기준으로 User를 로딩한다.
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(USERS_DIR)) {
-            for (Path path : stream) {
-                if (Files.isDirectory(path)) {
-                    String name = path.getFileName().toString();
-                    if (registerUsers.contains(name))
-                        loadUser(name, path);
-                }
-            }
-        }
+        loadUsers();
+        loadApps();
 
         // 접속 키 로딩
         for (DisplayKey key : db.getKeys()) {
             DISPLAY_KEYS.put(key.value, key);
         }
-
-        loadApps();
 
     }
 
@@ -161,8 +150,7 @@ public class AdminController {
         if (exist == null) {
             db.addKey(key.createTime());
             DISPLAY_KEYS.put(key.value, key);
-        }
-        else {
+        } else {
             db.modifyKey(exist.extend(key));
         }
     }
@@ -211,6 +199,8 @@ public class AdminController {
         public String createTime_kr;
         public long createTime;
 
+        public long sendTime = new Date().getTime();   // 계속 덮어씌어지며 실제 변경시간만 복사되어 이어진다. 로직을 잘 살펴볼것
+
         public CustomEmitter(long timeout) {
             super(timeout);
             Date date = new Date();
@@ -235,12 +225,22 @@ public class AdminController {
             return this;
         }
 
+        public CustomEmitter setSendTime() {
+            return this.setSendTime(new Date().getTime());
+        }
+
+        public CustomEmitter setSendTime(long time) {
+            this.sendTime = time;
+            return this;
+        }
+
         public int getHash() {
             return hashCode();
         }
 
         @Override
         public void send(Object object, MediaType mediaType) throws IOException {
+            setSendTime();
             super.send(object, mediaType);
         }
     }
@@ -274,7 +274,8 @@ public class AdminController {
         CustomEmitter emitter = new CustomEmitter(10 * 60 * 1000)
                 .set(index, path, host)
                 .setDisplay(userMap.getDisplay(index))
-                .setCertifyKey(certifyKey);
+                .setCertifyKey(certifyKey)
+                .setSendTime();
 
         /*
          * 왜 그런지는 모르겠지만, sse 커넥션 하나당 2개의 emitter가 만들어져서 같이 돌아간다.
@@ -283,24 +284,27 @@ public class AdminController {
         final List<CustomEmitter> list = emitterList0(path);
         for (CustomEmitter target : list) {
             if (target.certifyKey.equals(certifyKey)) {
+                emitter.setSendTime(target.sendTime);
                 target.complete();
                 list.remove(target);
             }
-
         }
         list.add(emitter);
         emitter.onTimeout(() -> list.remove(emitter));
         emitter.onCompletion(() -> list.remove(emitter));
 
+        // 에러방지용 더미 데이터 전송이므로, sendTime을 갱신하지 않도록 한다.
+        long temp = emitter.sendTime;
         send0(emitter);   // 503에러 방지
+        emitter.sendTime = temp;
         return emitter;
     }
+
     private List<CustomEmitter> emitterList0(String user) {
         List<CustomEmitter> list = EMITTERS.get(user);
         if (list == null) EMITTERS.put(user, list = new CopyOnWriteArrayList<>());
         return list;
     }
-
 
     private void send0(CustomEmitter emitter) {
         try {
@@ -311,6 +315,7 @@ public class AdminController {
     }
 
     private List<CustomEmitter> EMPTY_LIST = new ArrayList<>();
+
     private List<CustomEmitter> getEmitterList(String username) {
         List<CustomEmitter> list = EMITTERS.get(username);
         return list == null ? EMPTY_LIST : new ArrayList<>(list);
@@ -319,6 +324,26 @@ public class AdminController {
 
 
     /* ***************************  ▼ ADMIN ▼ *************************** */
+
+    private void loadUsers() throws IOException {
+        Set<String> registerUsers = db.users();
+        // DB기준으로 User를 로딩한다.
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(USERS_DIR)) {
+            for (Path path : stream) {
+                if (Files.isDirectory(path)) {
+                    String name = path.getFileName().toString();
+                    if (registerUsers.contains(name))
+                        loadUser(name, path);
+                }
+            }
+        }
+    }
+
+    @RequestMapping("/s/user/list")
+    @ResponseBody
+    public Object userList() {
+        return USERS.values().stream().map(s -> s.userDetail).collect(Collectors.toSet());
+    }
 
     @GetMapping(value = "/s/display/all")
     @ResponseBody
@@ -467,6 +492,7 @@ public class AdminController {
     }
 
 
+    // 앱 로딩
     @RequestMapping(value = "s/apps/refresh")
     @ResponseBody
     private void loadApps() throws IOException {
@@ -581,12 +607,14 @@ public class AdminController {
         }
     }
 
-    // 컨텐츠 변경/삭제/등록 시 호출
+    // 앱, 혹은 컨텐츠 변경/삭제/등록 시 호출
     @RequestMapping(value = {"user/update/content/{path}", "update/content"}, method = RequestMethod.POST)
     @ResponseBody
-    public void updateContent(@RequestBody ContentManager manager) throws IOException {
+    public int updateContent(@RequestBody ContentManager manager) throws IOException {
+
         ContentMap map = PROVIDER(manager.root, manager.path);
         Content.register(ROOT.resolve(manager.path()), map.contents);
+        return 1;
     }
 
     // 해당 유저의 컨텐츠의 로컬 변경시간을 일괄 갱신한다.
@@ -644,7 +672,11 @@ public class AdminController {
     }
 
 
-    // path/{index}에 해당하는 모든 디스플레이를 새로고침한다.
+    /*
+     * ★★ 유일하게 계정 사용자 요청에 의해 호출된다. ★★
+     * path/{index}에 해당하는 모든 디스플레이를 새로고침한다.
+     * 따라서 이 메서드에서 emitter의 lastOrderTime을 갱신한다.
+     */
     @RequestMapping(value = "public/reload/display/{user}/{index}")
     @ResponseBody
     public void reloadIndex(@PathVariable("user") String user,
@@ -655,6 +687,22 @@ public class AdminController {
         for (CustomEmitter emitter : getEmitterList(user)) {
             // 왜인지는 모르겠지만 emitter가 null일 때가 있다.
             if (emitter != null && emitter.display != null && emitter.display.index.equals(index))
+                emitters.add(emitter.setSendTime());
+        }
+        reload0(emitters, command, request);
+    }
+
+    // certifyKey에 따라 새로고침
+    @RequestMapping(value = "public/reload/certify/{user}/{certify}")
+    @ResponseBody
+    public void reloadCertify(@PathVariable("user") String user,
+                              @PathVariable("certify") String certify,
+                              @RequestParam(defaultValue = "1") int command,
+                              @RequestParam(required = false, name = "request") String request) {
+        List<CustomEmitter> emitters = new ArrayList<>();
+        for (CustomEmitter emitter : getEmitterList(user)) {
+            // 왜인지는 모르겠지만 emitter가 null일 때가 있다.
+            if (emitter != null && emitter.certifyKey.equals(certify))
                 emitters.add(emitter);
         }
         reload0(emitters, command, request);

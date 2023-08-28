@@ -30,9 +30,10 @@ public class Display {
 
     public String text;
 
-    public long serverTime;         // 브라우저에게 데이터 전송시 타임 (비교목적)
     public int command;
     public long refreshTime;        // 새로고침 명령 :: 브라우저가 저장하고 있는 serverTime과 비교해 새로고침을 실행한다.
+    public long serverTime;         // 브라우저에게 데이터 전송시 타임 (비교목적)
+
     public long updateTime;         // 변경시간
     public Map<Long, Object> request = new LinkedHashMap<>();       // 시간과 함께 명령어를 전달한다.
 
@@ -42,6 +43,7 @@ public class Display {
         this.user = user;
         this.index = index;
         PATH = USERS_DIR.resolve(user).resolve("_AppData").resolve(index);
+        serverTime = new Date().getTime();
     }
 
     public String jsonText() throws JSONException {

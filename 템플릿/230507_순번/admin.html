@@ -5,7 +5,7 @@
     <title>Title</title>
 
     <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
-    <link href="/dist/admin-app.css" rel="stylesheet" type="text/css">
+    <link href="/dist/app-admin.css" rel="stylesheet" type="text/css">
 
     <style>
 
@@ -98,7 +98,8 @@
 <body class="fixed-nav-gray">
 
 <nav>
-    <a href="/admin" target="_parent"><strong>ADMIN </strong></a>
+    <a class="home">순번 호출</a>
+    <span class="referer"></span>
     <span style="margin-left: auto">※인풋창 기입 후 「Enter」키를 누르세요.</span>
 </nav>
 
@@ -136,6 +137,8 @@
         const
             [$brand, input] = document.getElementsByTagName('input'),
             result = document.getElementById('result'),
+
+
             handler = () => {
                 const {brand, values} = data;
                 $brand.value = brand;

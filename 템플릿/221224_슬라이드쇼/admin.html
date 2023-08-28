@@ -7,7 +7,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
 
     <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
-    <link href="/dist/app-admin.css" rel='stylesheet' type='text/css'>
+    <link href="/dist/lib/css/reboot.css" rel="stylesheet" type="text/css">
+    <link href="/dist/app-admin.css" rel="stylesheet" type="text/css">
 
 
     <style>
@@ -15,12 +16,15 @@
         input::-webkit-input-placeholder {
             color: #aaa;
         }
+
         input::-moz-placeholder {
             color: #aaa;
         }
+
         input:-ms-input-placeholder {
             color: #aaa;
         }
+
         input::-ms-input-placeholder {
             color: #aaa;
         }
@@ -209,16 +213,9 @@
 </head>
 <body data-template="body">
 
-
 <nav>
-    <a href="/admin" target="_parent" class="brand">
-        <i>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-fill" viewBox="0 0 16 16">
-                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3Zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
-            </svg>
-        </i>
-        <span id="brand"></span>
-    </a>
+    <a class="home">슬라이드쇼</a>
+    <span class="referer"></span>
     <span class="nav-btn autoplay" data-event="auto">auto</span>
     <span class="nav-btn" data-event="add">추가</span>
     <span class="nav-btn" data-event="save">저장하기</span>
@@ -502,8 +499,6 @@
             return map;
         };
 
-
-    $brand.textContent = APP.paths.user
     JS.addEvent(Body);
 
     /* ***********************  init  ************************** */

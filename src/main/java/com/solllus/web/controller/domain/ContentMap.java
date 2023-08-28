@@ -27,11 +27,13 @@ public class ContentMap {
     }
 
     // 폴더 읽어오기
-    public <T extends ContentMap> T readAll() throws IOException {
+    public <T extends ContentMap> T readAll() {
         Map<String, Content> list = new HashMap<>();
         if (Files.exists(rootPath))
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(rootPath)) {
                 for (Path f : stream) Content.register(f, list);
+            } catch (IOException e) {
+
             }
         contents = list;
         return (T) this;

@@ -7,7 +7,7 @@ $color-video: #54c3a4;
 $color-image: #39cae1;
 
 html, body {
-  height: 110%;
+  height: 100%;
 }
 
 body {
@@ -21,11 +21,13 @@ body {
   font-size: .85rem;
   background-color: #e7e7e7;
 
-
-  &.supreme [data-view="supreme"] {
+  &:not([data-roles*="ADMIN"]) [data-view] {
     display: none;
   }
 
+  &:not([data-roles*="ADMIN"]) [data-approval="0"] {
+    display: none;
+  }
 }
 
 
@@ -118,7 +120,13 @@ nav {
   color: #666;
   -webkit-user-drag: none;
   user-select: none;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
 }
+
 
 .brand {
   display: flex;
@@ -153,9 +161,9 @@ nav {
   padding: 1.5rem;
 
   white-space: nowrap;
-  background-color: #205b5e;
+  background-color: #293b4e;
   color: white;
-  border-bottom: 1px solid #0f2729;
+  border-bottom: 1px solid #111;
 
   &.open {
     display: flex;
@@ -177,8 +185,8 @@ nav {
   }
 
   .btn {
-    border: 1px solid #9fcdcd;
-    background-color: #0c3a3d;
+    border: 1px solid #75808b;
+    background-color: #111d2a;
     color: white;
 
     &:hover {
@@ -195,6 +203,12 @@ nav {
     background-color: darkred;
   }
 
+}
+
+select {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid #a9a9a9;
+  color: #727272;
 }
 
 .content-container {
@@ -483,6 +497,8 @@ nav {
         outline: 0 !important;
       }
     }
+
+
 
     &[data-approval="0"] [data-approval-view]:not([data-approval-view="0"]) {
       display: none;

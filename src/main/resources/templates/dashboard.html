@@ -14,9 +14,25 @@
         }
 
         body {
+            padding-top: 60px;
             overflow-x: hidden;
             overflow-y: scroll;
             background-color: #e9e9e9;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            height: 60px;
+
+            color: #999 !important;
+            background-color: #222;
         }
 
         #container {
@@ -25,20 +41,16 @@
         }
 
         .container {
-
+            padding: 2rem;
+            width: 100%;
         }
 
         .body {
-            padding: 2rem;
+            width: 960px;
         }
 
         .header {
-            height: 60px;
-        }
-
-        .body {
-            margin: 0 auto;
-            width: 960px;
+            padding: 1rem;
         }
 
         table {
@@ -48,7 +60,23 @@
             background-color: white;
         }
 
+        tr.temporarily {
+            background-color: #f1f1f1;
+            color: #999;
+        }
+
+        tr:hover {
+            background-color: #e0ecf1;
+            transition: .2s ease background-color;
+        }
+
+        .certify:not(.on-play) {
+            opacity: .5;
+            color: #b7b7b7;
+        }
+
         th {
+            user-select: none;
             padding: .5rem;
             background-color: #454545;
             color: whitesmoke;
@@ -57,6 +85,26 @@
         th, td {
             border: 1px solid #ddd;
             text-align: center;
+            white-space: nowrap;
+        }
+
+        th[data-order] {
+            color: #f5be44;
+        }
+
+        th[data-order]:after {
+            margin-left: .3rem;
+            font-size: 4px;
+        }
+
+        /* 오름차순 ACS */
+        th[data-order="1"]:after {
+            content: '▲';
+        }
+
+        /* 내림차순 DESC */
+        th[data-order="0"]:after {
+            content: '▼';
         }
 
         td {
@@ -81,6 +129,10 @@
             .container {
                 width: 50%;
             }
+
+            .body {
+                width: 100%;
+            }
         }
 
     </style>
@@ -90,26 +142,33 @@
 <body>
 
 
+<nav>
+    <a href="javascript:history.back();" target="_parent">Home</a>
+</nav>
+
+
 <div id="container">
     <div class="container">
-        <div class="header"></div>
+        <div class="header">
+            <strong>등록된 디스플레이</strong>
+        </div>
         <div class="body">
-            <table>
+            <table class="certify-table">
                 <thead>
                 <tr>
                     <th>no</th>
-                    <th>create</th>
-                    <th>path</th>
-                    <th>nickname</th>
+                    <th data-order-prop="path">path</th>
+                    <th data-order-prop="createTime">create</th>
+                    <th data-order-prop="nickname">nickname</th>
                     <th>key</th>
                     <th>...</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr data-template="?certify">
-                    <td data-value="no"></td>
-                    <td data-value="create"></td>
+                <tr class="certify" data-template="?certify">
+                    <td class="no"></td>
                     <td data-value="path"></td>
+                    <td data-value="create"></td>
                     <td>
                         <input data-value="nickname">
                     </td>
@@ -125,25 +184,27 @@
     </div>
 
     <div class="container">
-        <div class="header"></div>
+        <div class="header">
+            <strong>현재 접속중인 디스플레이</strong>
+        </div>
         <div class="body">
-            <table>
+            <table class="display-table">
                 <thead>
                 <tr>
                     <th>no</th>
-                    <th>create</th>
-                    <th>path</th>
+                    <th data-order-prop="path">path</th>
+                    <th data-order-prop="createTime">@create</th>
+                    <th data-order-prop="lastChange">lastChange</th>
                     <th>certify</th>
-                    <th>@hash</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr data-template="?display">
-                    <td data-value="no"></td>
-                    <td data-value="create"></td>
+                <tr data-template="?display" data-value="registered">
+                    <td class="no"></td>
                     <td data-value="path"></td>
+                    <td data-value="create"></td>
+                    <td data-value="lastChange"></td>
                     <td data-value="certify"></td>
-                    <td data-value="hash"></td>
                 </tr>
                 </tbody>
             </table>
@@ -156,96 +217,158 @@
 <script src="/dist/js-boosteel.js"></script>
 <script>
 
+    const
 
-    const $init = ([certifyMap, displayMap], certifyTemplates = [], displayTemplates = []) => {
+        [$certifyTable, $displayTable] = JS.selector('.certify-table .display-table'),
+        $now = new Date().getTime(),
 
-        const
+        SortTable = class {
+            container
 
+            templates
+            $thead
+            $tbody
 
-            $sort = (array, prop, isACS = true) => {
-                const handler = (a, b) => (a.data[prop] < b.data[prop] ? -1 : 1) * (isACS ? 1 : -1);
-                array.sort(handler).forEach(template => template.appendTo());
-            },
+            constructor(container) {
+                this.container = container;
+                this.$tbody = container.getElementsByTagName('tbody')[0];
+                const thead = this.$thead = container.getElementsByTagName('thead')[0];
 
+                thead.addEventListener('click', ({target}) => {
+                    const name = target.getAttribute('data-order-prop');
+                    if (name) {
+                        this.sort(name, target.getAttribute('data-order') === '1')
+                    }
 
-            SortTable = class {
-                container
-                array
-
-                constructor(container, array) {
-                    this.array = array;
-                    this.container = container;
-                }
-
-
-            },
-
-            Certify = class extends JS.Template {
-
-                toJSON() {
-                    const {data, element} = this;
-                    data.nickname = element.getElementsByTagName('input')[0].value;
-                    return data;
-                }
-
-                apply() {
-                    this.eachElement({
-                        create(e, {createTime}) {
-                            e.textContent = JS.datetime(createTime);
-                        },
-                        path(e, {name, index}) {
-                            e.textContent = name + ' / ' + index;
-                        },
-                        nickname(e, {nickname}) {
-                            e.value = nickname;
-                        },
-                        key(e, {value}) {
-                            e.textContent = value;
-                        }
-                    })
-                    return this;
-                }
-
-            },
-
-            Display = class extends JS.Template {
-
-                apply() {
-                    this.eachElement({
-                        create(e, {createTime}) {
-                            e.textContent = JS.datetime(createTime);
-                        },
-                        path(e, {user, index}) {
-                            const anchor = '<a href="/admin/' + user + '" target="_blank">' + user + ' / ' + index + '</a>';
-                            e.innerHTML = anchor;
-                        },
-                        certify(e, {certifyKey}) {
-                            e.textContent = certifyKey;
-                        },
-                        hash(e, {hash}) {
-                            e.textContent = hash;
-                        }
-                    })
-                    return this;
-                }
-
-            };
-
-
-        for (let p in certifyMap) {
-            certifyTemplates.push(new Certify(certifyMap[p]).apply());
-        }
-
-        for (let p in displayMap) {
-            if (displayMap[p]) {
-                displayMap[p].forEach(data => data && displayTemplates.push(new Display(data).apply()));
+                });
             }
-        }
 
-        $sort(certifyTemplates, 'createTime', false);
-        $sort(displayTemplates, 'createTime', false);
+            setArray(array) {
+                this.templates = array;
+                this.$tbody.textContent = '';
+            }
 
-    };
+            sort(prop, isDESC = true) {
+                let {$thead, templates, templates: {length}} = this,
+                    handler = (a, b) => (a.data[prop] < b.data[prop] ? -1 : 1) * (isDESC ? 1 : -1);
+                forEach.call($thead.getElementsByTagName('th'), (th) => {
+                    if (th.dataset.orderProp === prop) th.setAttribute('data-order', isDESC ? 0 : 1);
+                    else th.removeAttribute('data-order');
+                });
+                templates.sort(handler).forEach((template, i) => template.setIndex(length - i).appendTo());
+            }
+        },
+
+        certifyTable = new SortTable($certifyTable),
+        displayTable = new SortTable($displayTable),
+
+
+        // 등록된 디스플레이 접속키
+        Certify = class extends JS.Template {
+
+            constructor(data) {
+                super(data);
+                data.path = data.name + '/' + data.index;
+            }
+
+            toJSON() {
+                const {data, element} = this;
+                data.nickname = element.getElementsByTagName('input')[0].value;
+                return data;
+            }
+
+            setIndex(i) {
+                this.element.getElementsByClassName('no')[0].textContent = i;
+                return this;
+            }
+
+            apply() {
+                this.eachElement({
+                    create(e, {createTime, onPlay}) {
+                        if (onPlay) e.closest('tr').classList.add('on-play');
+                        e.textContent = JS.datetime(createTime, 'yyyy-MM-dd(E) HH:mm');
+                    },
+                    path(e, {name, index}) {
+                        const anchor = '<a href="/admin/' + name + '" target="_blank">' + name + ' / ' + index + '</a>';
+                        e.innerHTML = anchor;
+                    },
+                    nickname(e, {nickname}) {
+                        e.value = nickname;
+                    },
+                    key(e, {value}) {
+                        e.textContent = value;
+                    }
+                })
+                return this;
+            }
+
+        },
+
+        // 접속중인 모든 디스플레이
+        Display = class extends JS.Template {
+
+            constructor(data) {
+                super(data);
+                data.lastChange = data.display.serverTime;
+                data.path = data.user + '/' + data.index;
+            }
+
+            setIndex(i) {
+                this.element.getElementsByClassName('no')[0].textContent = i;
+                return this;
+            }
+
+            apply() {
+                this.eachElement({
+                    create(e, {createTime}) {
+                        let duration = Math.floor(($now - createTime) / 1000),
+                            min = Math.floor(duration / 60),
+                            sec = duration % 60;
+                        e.textContent = ('00' + min).slice(-2) + ' : ' + ('00' + sec).slice(-2);
+                    },
+                    path(e, {user, index}) {
+                        const anchor = '<a href="/admin/' + user + '" target="_blank">' + user + ' / ' + index + '</a>';
+                        e.innerHTML = anchor;
+                    },
+                    certify(e, {certifyKey}) {
+                        if (!/^\d+\-/.test(certifyKey))
+                            e.closest('tr').classList.add('temporarily');
+                        e.textContent = certifyKey;
+                    },
+                    lastChange(e, {display: {serverTime: lastChange}}) {
+                        const {kr, type} = JS.Format.duration($now - lastChange);
+                        e.title = JS.datetime(lastChange, 'yyyy-MM-dd(E) HH:mm:ss');
+                        e.textContent = type < 3 ? kr : '-';
+                    }
+                })
+                return this;
+            }
+
+        },
+
+        $init = ([certifyMap, displayMap],
+                 certifyList = [], displayList = []) => {
+
+            for (let p in displayMap) {
+                if (displayMap[p]) {
+                    displayMap[p].forEach(data => {
+                        if (data) {
+                            certifyMap[data.certifyKey] && (certifyMap[data.certifyKey].onPlay = true);
+                            displayList.push(new Display(data).apply());
+                        }
+                    });
+                }
+                displayTable.setArray(displayList);
+            }
+
+            for (let p in certifyMap) {
+                certifyList.push(new Certify(certifyMap[p]).apply());
+            }
+            certifyTable.setArray(certifyList);
+
+            displayTable.sort('lastChange', false);
+            certifyTable.sort('createTime', false);
+        };
 
     JS.addEvent({
         save({$template}) {
@@ -258,7 +381,7 @@
                     .then(() => element.parentElement.removeChild(element))
             }
         }
-    })
+    });
 
     JS.fetch('/data/s/display/all')
         .then(res => res.json())

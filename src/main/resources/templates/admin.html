@@ -14,7 +14,7 @@
 
 </head>
 
-<body class="supreme" data-template="body">
+<body data-template="body">
 
 <nav>
 
@@ -28,9 +28,33 @@
     </a>
 
     <div class="ms-auto nav-btns">
-        <a id="admin" data-view="supreme" target="_blank">Explorer</a>
-        <a href="/dashboard" target="_blank" data-view="supreme">Dash</a>
-        <span data-view="supreme" data-event="supremeMenu">ADMIN</span>
+        <a href="/dashboard" target="_parent" data-view="ADMIN">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-database-check" viewBox="0 0 16 16">
+                <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm1.679-4.493-1.335 2.226a.75.75 0 0 1-1.174.144l-.774-.773a.5.5 0 0 1 .708-.708l.547.548 1.17-1.951a.5.5 0 1 1 .858.514Z"/>
+                <path d="M12.096 6.223A4.92 4.92 0 0 0 13 5.698V7c0 .289-.213.654-.753 1.007a4.493 4.493 0 0 1 1.753.25V4c0-1.007-.875-1.755-1.904-2.223C11.022 1.289 9.573 1 8 1s-3.022.289-4.096.777C2.875 2.245 2 2.993 2 4v9c0 1.007.875 1.755 1.904 2.223C4.978 15.71 6.427 16 8 16c.536 0 1.058-.034 1.555-.097a4.525 4.525 0 0 1-.813-.927C8.5 14.992 8.252 15 8 15c-1.464 0-2.766-.27-3.682-.687C3.356 13.875 3 13.373 3 13v-1.302c.271.202.58.378.904.525C4.978 12.71 6.427 13 8 13h.027a4.552 4.552 0 0 1 0-1H8c-1.464 0-2.766-.27-3.682-.687C3.356 10.875 3 10.373 3 10V8.698c.271.202.58.378.904.525C4.978 9.71 6.427 10 8 10c.262 0 .52-.008.774-.024a4.525 4.525 0 0 1 1.102-1.132C9.298 8.944 8.666 9 8 9c-1.464 0-2.766-.27-3.682-.687C3.356 7.875 3 7.373 3 7V5.698c.271.202.58.378.904.525C4.978 6.711 6.427 7 8 7s3.022-.289 4.096-.777ZM3 4c0-.374.356-.875 1.318-1.313C5.234 2.271 6.536 2 8 2s2.766.27 3.682.687C12.644 3.125 13 3.627 13 4c0 .374-.356.875-1.318 1.313C10.766 5.729 9.464 6 8 6s-2.766-.27-3.682-.687C3.356 4.875 3 4.373 3 4Z"/>
+            </svg>
+        </a>
+        <a id="admin" data-view="ADMIN" target="_blank">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-columns-reverse" viewBox="0 0 16 16">
+                <path fill-rule="evenodd"
+                      d="M0 .5A.5.5 0 0 1 .5 0h2a.5.5 0 0 1 0 1h-2A.5.5 0 0 1 0 .5Zm4 0a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1h-10A.5.5 0 0 1 4 .5Zm-4 2A.5.5 0 0 1 .5 2h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5Zm4 0a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5Zm-4 2A.5.5 0 0 1 .5 4h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5Zm4 0a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5Zm-4 2A.5.5 0 0 1 .5 6h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5Zm4 0a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5Zm-4 2A.5.5 0 0 1 .5 8h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5Zm4 0a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5Zm-4 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5Zm4 0a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1h-10a.5.5 0 0 1-.5-.5Zm-4 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5Zm4 0a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5Zm-4 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5Zm4 0a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5Z"/>
+            </svg>
+        </a>
+        <span data-view="ADMIN" data-event="supremeMenu">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16">
+  <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
+  <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
+</svg>
+        </span>
+        <div data-view="ADMIN" class="dropdown" x-placement="right">
+            <svg data-event="userLink" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-lines-fill"
+                 viewBox="0 0 16 16">
+                <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zM11 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5zm.5 2.5a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1h-4zm2 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2zm0 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2z"/>
+            </svg>
+            <div class="dropdown-menu">
+                <select></select>
+            </div>
+        </div>
         <a href="/logout" target="_parent">로그아웃</a>
     </div>
 </nav>
@@ -62,8 +86,8 @@
              name:data.content.name; mediaType:data.content.mediaType">
             <div class="content-header">
                 <a target="_blank" data-anchor></a>
-                <span class="ms-auto" data-event="reload">Reload</span>
-                <span data-view="supreme" data-event="removeDisplay">×</span>
+                <span class="ms-auto" data-event="reload">(Reload)</span>
+                <span data-view="ADMIN" data-event="removeDisplay">×</span>
             </div>
             <div class="content-body" data-event="open_display">
                 <div data-thumb></div>
@@ -88,10 +112,10 @@
                 <div class="content-body">
                     <div class="media-float" data-content></div>
                 </div>
-                <div class="content-supreme" data-view="supreme">
+                <div class="content-supreme" data-view="ADMIN">
                     <div data-approval-view="0" data-event="addContent">★</div>
                     <div data-approval-view="1" data-event="removeContent">★</div>
-                    <div class="del-media" data-view="supreme" data-event="deleteContent">×</div>
+                    <div class="del-media" data-view="ADMIN" data-event="deleteContent">×</div>
                 </div>
             </div>
         </div>
@@ -182,8 +206,7 @@
                             const {root, path, name} = $display.data,
                                 key = [root, path, name].join('/');
                             forEach.call(document.getElementsByClassName('content'), (ele) => {
-                                const chk = key === [ele.dataset.root, ele.dataset.path, ele.dataset.name].join('/');
-                                if (chk) ele.classList.add('active');
+                                if (key === ele.dataset.uri) ele.classList.add('active');
                                 else ele.classList.remove('active');
                             })
                         }
@@ -222,10 +245,11 @@
                             .then((data) => {
                                 $managerBody.textContent = '';
                                 const [apps, userApps, registered] = data,
+                                    sort = (a, b) => (a.path + a.name) > (b.path + b.name) ? 1 : -1,
                                     handler = app => new Content(app).setApproval(registered.indexOf(this.contentKey(app)) !== -1).apply().appendTo();
 
-                                apps.forEach(handler);
-                                userApps.forEach(handler);
+                                apps.sort(sort).forEach(handler);
+                                userApps.sort(sort).forEach(handler);
 
                                 JS.toggleClass($manager, 'active', true);
                                 body.dataset.display = index;
@@ -265,6 +289,31 @@
                                 })
 
                         } else $supremePanel.classList.remove('open');
+                    }
+
+                    userLink({target, link}) {
+                        target = target.closest('.dropdown');
+                        if (target.classList.contains('dropdown-open')) {
+                            target.classList.remove('dropdown-open');
+                        } else {
+                            JS.fetch('/data/s/user/list').then(res => res.json()).then(list => {
+                                const [select] = target.getElementsByTagName('select');
+
+                                select.innerHTML = list.map(({username}) => {
+                                    const s = username === $username ? ' selected' : '';
+                                    return '<option ' + s + '>' + username + '</option>';
+                                });
+
+
+                                if (!select.oninput) {
+                                    select.oninput = ({target}) => {
+                                        let [option] = target.selectedOptions;
+                                        location.href = '/admin/' + option.textContent;
+                                    }
+                                }
+                                target.classList.add('dropdown-open');
+                            })
+                        }
                     }
 
                     modifyUser({target}) {
@@ -405,20 +454,16 @@
 
                     anchor(target, value, data = this.data) {
                         target.href = '/v/' + $username + '/' + data.index;
-                        target.textContent = 'Display ' + data.index;
+                        target.textContent = 'Link ' + data.index;
                     }
 
                 },
 
                 Content = class extends JS.Template {
 
-                    key
-
-                    setData(data) {
-                        super.setData(data);
-                        const {element} = this;
-                        element.dataset.key = this.key = Body.contentKey(data);
-                        return this;
+                    constructor(data) {
+                        super(data);
+                        this.element.setAttribute('data-uri', [data.root, data.path, data.name].join('/'))
                     }
 
                     equals(data) {
@@ -436,7 +481,7 @@
 
                     setContentType(target) {
                         const {path, mediaType} = this.data;
-                        if(/html/.test(mediaType)) target.textContent = path;
+                        if (/html/.test(mediaType)) target.textContent = path;
                         else target.textContent = mediaType.split('/')[0];
                     }
 
@@ -460,6 +505,7 @@
             ADMIN.getId().then(async ([id, roles]) => {
 
                 id = suffixName || id;
+                document.body.dataset.roles = roles.join(' ');
 
                 // 관리자 접속
                 if (roles.indexOf('ADMIN') !== -1) {
@@ -480,10 +526,12 @@
                             admin = document.getElementById('admin'),
                             [nav] = document.getElementsByTagName('nav');
 
-                        admin.href = '/explorer?root=' + root;
+                        // nav 클릭시 유저폴더 Explorer로 이동
                         a.target = '_black';
                         a.href = '/explorer?root=' + root + '/users/' + id + '&matched=' + root;
                         nav.addEventListener('dblclick', (e) => e.target === nav && a.click());
+
+                        admin.href = '/explorer?root=' + root;
                         document.title = '@' + id + ' - ADMIN';
                     });
 

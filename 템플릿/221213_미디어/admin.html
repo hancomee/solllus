@@ -6,6 +6,8 @@
 
     <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
     <link href='/dist/fonts/SpoqaHanSansNeo.css' rel='stylesheet' type='text/css'>
+    <link href="/dist/lib/css/reboot.css" rel="stylesheet" type="text/css">
+    <link href="/dist/app-admin.css" rel="stylesheet" type="text/css">
 
     <style>
         html, body {
@@ -47,12 +49,13 @@
         {user, root, path, name} = APP.paths,
 
         upload = (file) => {
-            if (!file || !/image|video/i.test(file.type)) return;
+            if (!file || !/image|html/i.test(file.type)) return;
 
             $upload.textContent = 'uploading.....';
 
             const prefix = user + '__',
-                filename = prefix + new Date().getTime() + '.data';
+                type = file.name.slice(file.name.lastIndexOf('.')),
+                filename = prefix + new Date().getTime() + type;
 
             APP.uploadFiles([{file: file, filename: filename}])
                 .then(() => APP.setJSON({mediaType: file.type, filename: filename}))

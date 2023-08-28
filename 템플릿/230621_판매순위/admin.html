@@ -5,12 +5,22 @@
     <title></title>
     <link href="/dist/fonts/SpoqaHanSansNeo.css" rel="stylesheet" type="text/css">
     <link href="/dist/lib/css/reboot.css" rel="stylesheet" type="text/css">
-    <link href="/dist/src/app-admin.css" rel="stylesheet" type="text/css">
+    <link href="/dist/app-admin.css" rel="stylesheet" type="text/css">
 
     <style>
 
         .container {
+            position: relative;
             padding: 1rem;
+            margin: 2rem auto;
+        }
+
+        .item-container {
+            position: absolute;
+            top: 0;
+            padding: .5rem;
+            width: 90%;
+            transition: .3s ease top;
         }
 
         .item {
@@ -19,10 +29,6 @@
             background-color: white;
             border-radius: .3rem;
             border: 1px solid #959595;
-        }
-
-        .item + .item {
-            margin-top: 1rem;
         }
 
         .item-panel {
@@ -69,7 +75,7 @@
             border-top: 1px solid white;
         }
 
-        @media (min-width: 1280px) {
+        @media (min-width: 960px) {
             .container {
                 margin: 0 auto;
                 width: 560px;
@@ -81,22 +87,25 @@
 <body class="fixed-nav-gray">
 
 <nav>
-    <a href="/admin" target="_parent"><strong>판매순위</strong></a>
+    <a class="home">판매순위</a>
+    <span class="referer"></span>
     <div class="nav-buttons ms-auto">
         <span data-event="save">Save</span>
     </div>
 </nav>
 
 <div class="container">
-    <div class="item" data-template="?item" data-index="1">
-        <div class="item-panel">
-            <div class="thumb" data-event="thumb"></div>
-            <div class="input">
-                <input placeholder="제품명을 적어주세요">
-            </div>
-            <div class="sort">
-                <div data-event="sort" data-value="0">▲</div>
-                <div data-event="sort" data-value="1">▼</div>
+    <div class="item-container" data-template="?item" data-index="1">
+        <div class="item">
+            <div class="item-panel">
+                <div class="thumb" data-event="thumb"></div>
+                <div class="input">
+                    <input placeholder="제품명을 적어주세요">
+                </div>
+                <div class="sort">
+                    <div data-event="sort" data-value="-1">▲</div>
+                    <div data-event="sort" data-value="1">▼</div>
+                </div>
             </div>
         </div>
     </div>
@@ -109,6 +118,31 @@
 <script>
 
     const
+
+        [$container] = document.getElementsByClassName('container'),
+
+        sortRender = (from, to) => {
+            let top = 0, index = 0, array = [];
+            // data-index에 맞춰서 정렬
+            Array.prototype.forEach.call($container.children, (e) => {
+                e.hasAttribute('data-index') && (array[e.getAttribute('data-index')] = e);
+            });
+
+            if (typeof from === 'number' && typeof to === 'number') {
+                const item = array.splice(from, 1)[0];
+                array.splice(to, 0, item);
+            }
+
+            array.forEach((e, i) => {
+                if (e) {
+                    e.style.top = top + 'px';
+                    e.style.zIndex = i;
+                    top += e.offsetHeight;
+                    e.setAttribute('data-index', index++);
+                }
+            })
+        },
+
         Item = class extends JS.Template {
 
             file
@@ -125,7 +159,7 @@
                 'img name count'.split(' ').forEach(p => this.data[p] = data[p]);
                 const {img, name, count} = this.data;
                 this.data.name = this.$input.value = name || '';
-                if(img) this.$thumb.style.backgroundImage = 'url("' + APP.src(img) + '")';
+                if (img) this.$thumb.style.backgroundImage = 'url("' + APP.src(img) + '")';
                 return this;
             }
 
@@ -146,12 +180,17 @@
                 return this;
             }
 
+            setIndex(index) {
+                this.element.setAttribute('data-index', index);
+                return this;
+            }
+
             toJSON() {
                 this.data.name = this.$input.value.trim();
                 return this.data;
             }
         },
-        items = [{}, {}, {}, {}, {}].map(data => new Item(data).apply().appendTo()),
+        items = [{}, {}, {}, {}, {}].map((data, i) => new Item(data).setIndex(i).apply().appendTo()),
 
         events = {
 
@@ -168,20 +207,18 @@
                     }
                 })
             },
-            sort({$item, value}) {
-                const {element} = $item,
-                    parent = element.parentElement,
-                    prev = element.previousElementSibling, next = element.nextElementSibling;
-                if (value) {
-                    next && parent.insertBefore(next, element);
-                } else {
-                    prev && parent.insertBefore(element, prev);
-                }
+            sort({$item, index, value}) {
+                sortRender(index, index + value);
             },
 
             save() {
-                const items = map.call(document.getElementsByClassName('item'),
-                    (ele, i) => JS.Template.$get(ele).setCount(10 - i));
+                const items = [];
+
+                forEach.call($container.getElementsByClassName('item-container'), (e) => {
+                    e.hasAttribute('data-index') && (items[e.getAttribute('data-index')] = JS.Template.$get(e));
+                })
+                items.forEach((item, i) => item.setCount(10 - i));
+
 
                 // 파일 업로드
                 Promise.all(items.map((item, i) => {
@@ -197,10 +234,11 @@
         };
 
 
+    sortRender();
     JS.addEvent(events);
 
     APP.getJSON().then(data => {
-        if(data) {
+        if (data) {
             data.values.forEach((value, i) => items[i].setData(value));
         }
     });
