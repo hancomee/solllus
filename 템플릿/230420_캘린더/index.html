@@ -286,7 +286,7 @@
             return (string_yyyyMM) => {
                 todayStyle(saveDate);
                 if (handlers[string_yyyyMM]) return handlers[string_yyyyMM]();
-                JS.crawling({
+                JS.jsonp({
                     url: 'https://m.search.naver.com/p/csearch/content/qapirender.nhn?where=nexearch&key=CalendarAnniversary&pkid=134&q=' + string_yyyyMM + '%EC%9B%94&_callback=d',
                 }).then((result) => {
                     const {openCalendar: {daysList}} = JSON.parse(/\((.*)\)/.exec(result.replace(/\n/g, ''))[1]),
